@@ -1,3 +1,4 @@
+/// <reference path="ChangeLinr.d.ts" />
 var ChangeLinr;
 (function (_ChangeLinr) {
     "use strict";
@@ -60,7 +61,7 @@ var ChangeLinr;
         /* Simple gets
         */
         /**
-         * @return {Object} The cached output of this.process and this.processFull.
+         * @return {Mixed} The cached output of this.process and this.processFull.
          */
         ChangeLinr.prototype.getCache = function () {
             return this.cache;
@@ -139,6 +140,7 @@ var ChangeLinr;
          * @return {Object} The complete output of the transforms.
          */
         ChangeLinr.prototype.processFull = function (raw, key, attributes) {
+            if (attributes === void 0) { attributes = undefined; }
             var output = {}, i;
             this.process(raw, key, attributes);
             for (i = 0; i < this.pipeline.length; ++i) {

@@ -1,3 +1,4 @@
+/// <reference path="StringFilr.d.ts" />
 var StringFilr;
 (function (_StringFilr) {
     "use strict";

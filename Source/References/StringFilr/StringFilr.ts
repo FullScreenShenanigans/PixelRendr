@@ -1,17 +1,7 @@
+/// <reference path="StringFilr.d.ts" />
+
 module StringFilr {
     "use strict";
-
-    export interface IStringFilrSettings {
-        // An Object containing data stored as children of sub-Objects.
-        library: any;
-
-        // A String to use as a default key to rescue on, if provided.
-        normal?: string;
-
-        // Whether it's ok for the library to have Objects that don't contain the
-        // normal key (by default, false).
-        requireNormalKey?: boolean;
-    }
 
     /**
      * A general utility for retrieving data from an Object based on nested class
@@ -21,7 +11,7 @@ module StringFilr {
      * 
      * @author "Josh Goldberg" <josh@fullscreenmario.com>
      */
-    export class StringFilr {
+    export class StringFilr implements IStringFilr {
         // The library of data.
         private library: any;
 
@@ -152,7 +142,7 @@ module StringFilr {
          *                           don't have a matching key.
          * @return {String[]} output
          */
-        findLackingNormal(current: any, path: string, output: string[]): string[] {
+        private findLackingNormal(current: any, path: string, output: string[]): string[] {
             var i: string;
 
             if (!current.hasOwnProperty(this.normal)) {

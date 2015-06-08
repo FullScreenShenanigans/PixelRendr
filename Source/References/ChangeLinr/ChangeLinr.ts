@@ -1,18 +1,7 @@
+/// <reference path="ChangeLinr.d.ts" />
+
 module ChangeLinr {
     "use strict";
-
-    export interface IChangeLinrSettings {
-        pipeline: string[];
-        transforms: {
-            [i: string]: IChangeLinrTransform
-        };
-        doMakeCache?: boolean;
-        doUseCache?: boolean;
-    }
-
-    export interface IChangeLinrTransform {
-        (data: any, key: string, attributes: any, scope: ChangeLinr): any;
-    }
 
     /**
      * A general utility for transforming raw input to processed output. This is
@@ -21,7 +10,7 @@ module ChangeLinr {
      * 
      * @author "Josh Goldberg" <josh@fullscreenmario.com>
      */
-    export class ChangeLinr {
+    export class ChangeLinr implements IChangeLinr {
         // Associative array of Functions that may be used to transform data
         private transforms: {
             [i: string]: IChangeLinrTransform;
@@ -31,14 +20,10 @@ module ChangeLinr {
         private pipeline: string[];
 
         // Cached output of the results of the pipeline
-        private cache: { 
-            [i: string]: any;
-        };
+        private cache: IChangeLinrCache;
 
         // Cached output of each step of the pipeline
-        private cacheFull: {
-            [i: string]: any;
-        };
+        private cacheFull: IChangeLinrCacheFull;
 
         // Whether this should be caching responses
         private doMakeCache: boolean;
@@ -118,9 +103,9 @@ module ChangeLinr {
         */
 
         /**
-         * @return {Object} The cached output of this.process and this.processFull.
+         * @return {Mixed} The cached output of this.process and this.processFull.
          */
-        getCache(): Object {
+        getCache(): IChangeLinrCache  {
             return this.cache;
         }
 
@@ -136,7 +121,7 @@ module ChangeLinr {
          * @return {Object} A complete listing of the cached outputs from all 
          *                  processed information, from each pipeline transform.
          */
-        getCacheFull(): Object {
+        getCacheFull(): IChangeLinrCacheFull {
             return this.cacheFull;
         }
 
@@ -209,7 +194,7 @@ module ChangeLinr {
          *                                transform Functions.
          * @return {Object} The complete output of the transforms.
          */
-        processFull(raw: any, key: string, attributes: any): any {
+        processFull(raw: any, key: string, attributes: any = undefined): any {
             var output: any = {},
                 i: number;
 
