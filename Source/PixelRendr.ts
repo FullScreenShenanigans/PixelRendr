@@ -1,6 +1,5 @@
 /// <reference path="References/StringFilr/StringFilr.ts" />
 /// <reference path="References/ChangeLinr/ChangeLinr.ts" />
-/// <reference path="Uint8ClampedArray.d.ts" />
 /// <reference path="PixelRendr.d.ts" />
 
 module PixelRendr {
@@ -26,7 +25,7 @@ module PixelRendr {
      * 
      * @author "Josh Goldberg" <josh@fullscreenmario.com>
      */
-    export class PixelRendr {
+    export class PixelRendr implements IPixelRendr {
         // The base container for storing sprite information.
         private library: any;
 
@@ -320,7 +319,7 @@ module PixelRendr {
          *                               sprite settings (Array[] if giveArrays is
          *                               true).
          */
-        public generatePaletteFromRawData(
+        generatePaletteFromRawData(
             data: Uint8ClampedArray,
             forceZeroColor: boolean = false,
             giveArrays: boolean = false): Uint8ClampedArray[] {

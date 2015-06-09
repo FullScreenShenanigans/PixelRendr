@@ -67,6 +67,25 @@ declare module PixelRendr {
          */
         Uint8ClampedArray?: any;
     }
+
+    export interface IPixelRendr {
+        getBaseLibrary(): any;
+        getBaseFiler(): StringFilr.StringFilr;
+        getProcessorBase(): ChangeLinr.ChangeLinr;
+        getProcessorDims(): ChangeLinr.ChangeLinr;
+        getProcessorEncode(): ChangeLinr.ChangeLinr;
+        getSpriteBase(key: string): void;
+        decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
+        encode(image: HTMLImageElement, callback: IPixelRendrEncodeCallback, source: any): string;
+        encodeUri(uri: string, callback: IPixelRendrEncodeCallback): void;
+        generatePaletteFromRawData(data: Uint8ClampedArray, forceZeroColor?: boolean, giveArrays?: boolean): Uint8ClampedArray[];
+        memcpyU8(
+            source: Uint8ClampedArray | number[],
+            destination: Uint8ClampedArray | number[],
+            readloc?: number,
+            writeloc?: number,
+            writelength?: number);
+    }
 }
 
 /**
