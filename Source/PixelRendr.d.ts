@@ -70,10 +70,10 @@ declare module PixelRendr {
 
     export interface IPixelRendr {
         getBaseLibrary(): any;
-        getBaseFiler(): StringFilr.StringFilr;
-        getProcessorBase(): ChangeLinr.ChangeLinr;
-        getProcessorDims(): ChangeLinr.ChangeLinr;
-        getProcessorEncode(): ChangeLinr.ChangeLinr;
+        getBaseFiler(): StringFilr.IStringFilr;
+        getProcessorBase(): ChangeLinr.IChangeLinr;
+        getProcessorDims(): ChangeLinr.IChangeLinr;
+        getProcessorEncode(): ChangeLinr.IChangeLinr;
         getSpriteBase(key: string): void;
         decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
         encode(image: HTMLImageElement, callback: IPixelRendrEncodeCallback, source: any): string;
