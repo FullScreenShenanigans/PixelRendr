@@ -644,7 +644,9 @@ module PixelRendr {
          * @param {Object} attributes
          */
         private processSpriteMultiple(sprite: ISpriteMultiple, key: string, attributes: any): void {
-            for (var i in sprite.sprites) {
+            var i: string;
+
+            for (i in sprite.sprites) {
                 if (sprite.sprites[i] instanceof this.Uint8ClampedArray) {
                     sprite.sprites[i] = this.ProcessorDims.process(sprite.sprites[i], key + " " + i, attributes);
                 }
@@ -997,7 +999,7 @@ module PixelRendr {
          */
         private imageGetData(image: HTMLImageElement): number[] {
             var canvas: HTMLCanvasElement = document.createElement("canvas"),
-                context: CanvasRenderingContext2D = canvas.getContext("2d");
+                context: CanvasRenderingContext2D = <CanvasRenderingContext2D>canvas.getContext("2d");
 
             canvas.width = image.width;
             canvas.height = image.height;
