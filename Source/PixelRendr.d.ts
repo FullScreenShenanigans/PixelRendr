@@ -12,7 +12,7 @@ declare module PixelRendr {
     }
 
     export interface IRender {
-        Status: RenderStatus;
+        status: RenderStatus;
         path: string;
         reference?: string[];
         source: string | any[];

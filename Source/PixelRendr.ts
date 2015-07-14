@@ -279,13 +279,22 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple {
-            // BaseFiler stores the cache of the base sprites. Note that it doesn't
-            // actually require the extra attributes
-            var sprite: Uint8ClampedArray | ISpriteMultiple = this.BaseFiler.get(key);
+            // // BaseFiler stores the cache of the base sprites. Note that it doesn't
+            // // actually require the extra attributes
+            // var sprite: Uint8ClampedArray | ISpriteMultiple = this.BaseFiler.get(key);
 
-            if (!sprite) {
+            var render: IRender = this.BaseFiler.get(key),
+                sprite: Uint8ClampedArray | ISpriteMultiple;
+
+            if (!render) {
                 throw new Error("No raw sprite found for " + key + ".");
             }
+
+            if (render.status !== RenderStatus.Complete) {
+                this.generateSpriteFromRender(render);
+            }
+
+            sprite = render.sprite;
 
             // Multiple sprites have their sizings taken from attributes
             if ((<ISpriteMultiple>sprite).multiple) {
@@ -511,7 +520,7 @@ module PixelRendr {
                         // Strings directly become IRenders
                         // setnew[i] = this.ProcessorBase.process(objref, path + " " + i);
                         setNew[i] = {
-                            "Status": RenderStatus.Raw,
+                            "status": RenderStatus.Raw,
                             "path": pathChild,
                             "source": source
                         };
@@ -521,7 +530,7 @@ module PixelRendr {
                         // Arrays contain a String filter, a String[] source, and any
                         // number of following arguments
                         setNew[i] = {
-                            "Status": RenderStatus.Raw,
+                            "status": RenderStatus.Raw,
                             "path": pathChild,
                             "reference": source[1],
                             "source": source
@@ -536,6 +545,13 @@ module PixelRendr {
             }
 
             return setNew;
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteFromRender(render: IRender): Uint8ClampedArray | ISpriteMultiple {
+            throw "sup";
         }
 
         /**
