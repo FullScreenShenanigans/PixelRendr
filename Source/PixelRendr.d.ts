@@ -11,12 +11,6 @@ declare module PixelRendr {
         middleStretch: boolean;
     }
 
-    export enum RenderStatus {
-        Raw,
-        Base,
-        Complete
-    }
-
     export interface IRender {
         Status: RenderStatus;
         path: string;

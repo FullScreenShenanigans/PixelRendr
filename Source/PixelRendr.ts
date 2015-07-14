@@ -25,6 +25,12 @@
 module PixelRendr {
     "use strict";
 
+    export enum RenderStatus {
+        Raw,
+        Base,
+        Complete
+    }
+
     /**
      * A moderately unusual graphics module designed to compress images as
      * compressed text blobs and store the text blobs in a StringFilr. These tasks 
