@@ -3,7 +3,6 @@ declare module PixelRendr {
         direction: string;
         multiple: boolean;
         sprites: any;
-        processed: boolean;
         topheight: number;
         rightwidth: number;
         bottomheight: number;

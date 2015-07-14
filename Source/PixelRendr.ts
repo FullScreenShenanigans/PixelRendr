@@ -279,37 +279,21 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple {
-            // // BaseFiler stores the cache of the base sprites. Note that it doesn't
-            // // actually require the extra attributes
-            // var sprite: Uint8ClampedArray | ISpriteMultiple = this.BaseFiler.get(key);
-
-            var render: IRender = this.BaseFiler.get(key),
-                sprite: Uint8ClampedArray | ISpriteMultiple;
+            var render: IRender = this.BaseFiler.get(key);
 
             if (!render) {
-                throw new Error("No raw sprite found for " + key + ".");
+                throw new Error("No sprite found for " + key + ".");
             }
 
             if (render.status !== RenderStatus.Complete) {
-                this.generateSpriteFromRender(render);
+                render.sprite = this.generateSpriteFromRender(render, attributes);
+
+                if (!render.sprite) {
+                    throw "Not rendered.";
+                }
             }
 
-            sprite = render.sprite;
-
-            // Multiple sprites have their sizings taken from attributes
-            if ((<ISpriteMultiple>sprite).multiple) {
-                if (!(<ISpriteMultiple>sprite).processed) {
-                    this.processSpriteMultiple(<ISpriteMultiple>sprite, key, attributes);
-                }
-            } else {
-                // Single (actual) sprites process for size (row) scaling, and flipping
-                if (!(sprite instanceof this.Uint8ClampedArray)) {
-                    throw new Error("No single raw sprite found for: '" + key + "'");
-                }
-                sprite = this.ProcessorDims.process(sprite, key, attributes);
-            }
-
-            return sprite;
+            return render.sprite;
         }
 
         /**
@@ -550,8 +534,29 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFromRender(render: IRender): Uint8ClampedArray | ISpriteMultiple {
-            throw "sup";
+        private generateSpriteFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+            if (render.source.constructor === String) {
+                return this.generateSpriteSingleFromRender(render, attributes);
+            } else {
+                return this.generateSpriteMultipleFromRender(render, attributes);
+            }
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteSingleFromRender(render: IRender, attributes: any): Uint8ClampedArray {
+            var base: Uint8ClampedArray = this.ProcessorBase.process(render, render.path),
+                sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
+
+            return sprite;
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteMultipleFromRender(render: IRender, attributes: any): ISpriteMultiple {
+            throw "goodbye";
         }
 
         /**
@@ -662,7 +667,6 @@ module PixelRendr {
                     "direction": direction,
                     "multiple": true,
                     "sprites": {},
-                    "processed": false,
                     "topheight": sections.topheight | 0,
                     "rightwidth": sections.rightwidth | 0,
                     "bottomheight": sections.bottomheight | 0,
@@ -678,29 +682,6 @@ module PixelRendr {
             }
 
             return output;
-        }
-
-        /**
-         * Processes each of the components in a SpriteMultiple. These are all 
-         * individually processed using the attributes by the dimensions processor.
-         * Each sub-sprite will be processed as if it were in a sub-Object referred
-         * to by the path (so if path is "foo bar", "foo bar middle" will be the
-         * middle sprite's key).
-         * 
-         * @param {SpriteMultiple} sprite
-         * @param {String} key
-         * @param {Object} attributes
-         */
-        private processSpriteMultiple(sprite: ISpriteMultiple, key: string, attributes: any): void {
-            var i: string;
-
-            for (i in sprite.sprites) {
-                if (sprite.sprites[i] instanceof this.Uint8ClampedArray) {
-                    sprite.sprites[i] = this.ProcessorDims.process(sprite.sprites[i], key + " " + i, attributes);
-                }
-            }
-
-            sprite.processed = true;
         }
 
 
