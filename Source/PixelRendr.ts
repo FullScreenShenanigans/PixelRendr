@@ -289,7 +289,6 @@ module PixelRendr {
                 render.sprite = this.generateSpriteFromRender(render, attributes);
             }
 
-            console.log("Returning", render.sprite);
             return render.sprite;
         }
 
