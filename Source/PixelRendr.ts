@@ -534,7 +534,7 @@ module PixelRendr {
             if (render.source.constructor === String) {
                 return this.generateSpriteSingleFromRender(render, attributes);
             } else {
-                return this.generateSpriteMultipleFromRender(render, attributes);
+                return this.generateSpriteFilterFromRender(render, attributes);
             }
         }
 
@@ -551,32 +551,42 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteMultipleFromRender(render: IRender, attributes: any): ISpriteMultiple {
+        private generateSpriteFilterFromRender(render: IRender, attributes: any): ISpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 sprite: Uint8ClampedArray,
                 path: string,
                 i: string;
 
-            for (i in sources) {
-                if (sources.hasOwnProperty(i)) {
-                    path = render.path + " " + i;
-                    sprite = this.ProcessorBase.process(sources[i], path, attributes);
-                    sprites = this.ProcessorDims.process(sprite, render.path, attributes);
-                }
-            }
+            switch (render.source[0]) {
+                case "multiple":
+                    for (i in sources) {
+                        if (sources.hasOwnProperty(i)) {
+                            path = render.path + " " + i;
+                            sprite = this.ProcessorBase.process(sources[i], path, attributes);
+                            sprites[i] = this.ProcessorDims.process(sprite, path, attributes);
+                        }
+                    }
 
-            // @todo: Move topheight, etc. into attributes (simple switch)
-            return {
-                "direction": sources[1],
-                "multiple": true,
-                "sprites": sprites,
-                "topheight": sources.topheight | 0,
-                "rightwidth": sources.rightwidth | 0,
-                "bottomheight": sources.bottomheight | 0,
-                "leftwidth": sources.leftwidth | 0,
-                "middleStretch": sources.middleStretch || false
-            };
+                    // @todo: Move topheight, etc. into attributes (simple switch)
+                    console.log("And", sprites);
+                    console.log("from", sources);
+                    return {
+                        "direction": sources[1],
+                        "multiple": true,
+                        "sprites": sprites,
+                        "topheight": sources.topheight | 0,
+                        "rightwidth": sources.rightwidth | 0,
+                        "bottomheight": sources.bottomheight | 0,
+                        "leftwidth": sources.leftwidth | 0,
+                        "middleStretch": sources.middleStretch || false
+                    };
+
+                case "same":
+                    if (window.hasOwnProperty("durp")) {
+                        throw "sup";
+                    }
+            }
         }
 
         /**
