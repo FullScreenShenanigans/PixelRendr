@@ -287,12 +287,9 @@ module PixelRendr {
 
             if (render.status !== RenderStatus.Complete) {
                 render.sprite = this.generateSpriteFromRender(render, attributes);
-
-                if (!render.sprite) {
-                    throw "Not rendered.";
-                }
             }
 
+            console.log("Returning", render.sprite);
             return render.sprite;
         }
 
@@ -546,7 +543,7 @@ module PixelRendr {
          * 
          */
         private generateSpriteSingleFromRender(render: IRender, attributes: any): Uint8ClampedArray {
-            var base: Uint8ClampedArray = this.ProcessorBase.process(render, render.path),
+            var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path),
                 sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
 
             return sprite;
@@ -556,7 +553,31 @@ module PixelRendr {
          * 
          */
         private generateSpriteMultipleFromRender(render: IRender, attributes: any): ISpriteMultiple {
-            throw "goodbye";
+            var sources: any = render.source[2],
+                sprites: any = {},
+                sprite: Uint8ClampedArray,
+                path: string,
+                i: string;
+
+            for (i in sources) {
+                if (sources.hasOwnProperty(i)) {
+                    path = render.path + " " + i;
+                    sprite = this.ProcessorBase.process(sources[i], path, attributes);
+                    sprites = this.ProcessorDims.process(sprite, render.path, attributes);
+                }
+            }
+
+            // @todo: Move topheight, etc. into attributes (simple switch)
+            return {
+                "direction": sources[1],
+                "multiple": true,
+                "sprites": sprites,
+                "topheight": sources.topheight | 0,
+                "rightwidth": sources.rightwidth | 0,
+                "bottomheight": sources.bottomheight | 0,
+                "leftwidth": sources.leftwidth | 0,
+                "middleStretch": sources.middleStretch || false
+            };
         }
 
         /**
