@@ -9,6 +9,19 @@
 
 // @include ../Source/PixelRendr.d.ts
 
+/**
+ * @todo
+ * The first versions of this library were made many years ago by an 
+ * inexperienced author, and have undergone only moderate structural revisions
+ * since. There are two key improvements that should happen:
+ * 1. On reset, the source library should be mapped to a PartialRender class 
+ *    that stores loading status and required ("post") references, to enable
+ *    lazy loading. See #71.
+ * 2. Once lazy loading is implemented for significantly shorter startup times,
+ *    an extra layer of compression should be added to compress the technically
+ *    human-readable String sources to a binary-ish format. See #236.
+ * 3. Rewrite the heck out of this piece of crap.
+ */
 module PixelRendr {
     "use strict";
 
@@ -18,23 +31,12 @@ module PixelRendr {
      * are performed and cached quickly enough for use in real-time environments, 
      * such as real-time video games.
      * 
-     * @todo
-     * The first versions of this library were made many years ago by an 
-     * inexperienced author, and have undergone only moderate structural revisions
-     * since. There are two key improvements that should happen:
-     * 1. On reset, the source library should be mapped to a PartialRender class 
-     *    that stores loading status and required ("post") references, to enable
-     *    lazy loading. See #71.
-     * 2. Once lazy loading is implemented for significantly shorter startup times,
-     *    an extra layer of compression should be added to compress the technically
-     *    human-readable String sources to a binary-ish format. See #236.
-     * 3. Rewrite the heck out of this piece of crap.
      */
     export class PixelRendr implements IPixelRendr {
         /**
          * The base container for storing sprite information.
          */
-        private library: any;
+        private library: ILibrary;
 
         /**
          * A StringFilr interface on top of the base library.
@@ -120,10 +122,10 @@ module PixelRendr {
             if (!settings) {
                 throw new Error("No settings given to PixelRendr.");
             }
-
             if (!settings.paletteDefault) {
                 throw new Error("No paletteDefault given to PixelRendr.");
             }
+
             this.paletteDefault = settings.paletteDefault;
 
             this.digitsizeDefault = this.getDigitSize(this.paletteDefault);
@@ -135,7 +137,6 @@ module PixelRendr {
             };
 
             this.filters = settings.filters || {};
-
             this.scale = settings.scale || 1;
 
             this.flipVert = settings.flipVert || "flip-vert";
@@ -146,8 +147,7 @@ module PixelRendr {
 
             this.Uint8ClampedArray = (settings.Uint8ClampedArray
                 || (<any>window).Uint8ClampedArray
-                || (<any>window).Uint8Array
-                );
+                || (<any>window).Uint8Array);
 
             // The first ChangeLinr does the raw processing of Strings to sprites
             // This is used to load & parse sprites into memory on startup
@@ -197,9 +197,6 @@ module PixelRendr {
             });
 
             this.library.sprites = this.libraryParse(this.library.raws, "");
-
-            // Post commands are evaluated after the first processing run
-            this.libraryPosts();
 
             // The BaseFiler provides a searchable 'view' on the library of sprites
             this.BaseFiler = new StringFilr.StringFilr({
@@ -482,17 +479,16 @@ module PixelRendr {
          */
 
         /**
-         * Recursive Function to go throw a library and parse it. A copy of the
-         * structure is made where each result is either a parsed sprite, a
-         * placeholder for a post command, or a recursively generated child Object.
+         * Recursive Function to go throw a library and parse it.
          * 
          * @param {Object} reference   The raw source structure to be parsed.
          * @param {String} path   The path to the current place within the library.
          * @return {Object} The parsed library Object.
          */
-        private libraryParse(reference: any, path: string): any {
-            var setnew: any = {},
-                objref: any,
+        private libraryParse(reference: any, path: string): IRenderLibrary {
+            var setNew: IRenderLibrary = {},
+                pathChild: string,
+                source: any,
                 i: string;
 
             // For each child of the current layer:
@@ -501,45 +497,39 @@ module PixelRendr {
                     continue;
                 }
 
-                objref = reference[i];
-                switch (objref.constructor) {
-                    // If it's a string, parse it
+                pathChild = path + " " + i;
+                source = reference[i];
+
+                switch (source.constructor) {
                     case String:
-                        setnew[i] = this.ProcessorBase.process(objref, path + " " + i);
+                        // Strings directly become IRenders
+                        // setnew[i] = this.ProcessorBase.process(objref, path + " " + i);
+                        setNew[i] = {
+                            "Status": RenderStatus.Raw,
+                            "path": pathChild,
+                            "source": source
+                        };
                         break;
-                    // If it's an array, it should have a command such as 'same' to be post-processed
+
                     case Array:
-                        this.library.posts.push({
-                            caller: setnew,
-                            name: i,
-                            command: reference[i],
-                            path: path + " " + i
-                        });
+                        // Arrays contain a String filter, a String[] source, and any
+                        // number of following arguments
+                        setNew[i] = {
+                            "Status": RenderStatus.Raw,
+                            "path": pathChild,
+                            "reference": source[1],
+                            "source": source
+                        };
                         break;
-                    // If it's anything else, simply recurse
+
                     default:
-                        setnew[i] = this.libraryParse(objref, path + " " + i);
+                        // If it's anything else, simply recurse
+                        setNew[i] = this.libraryParse(source, path + " " + i);
                         break;
                 }
             }
 
-            return setnew;
-        }
-
-        /**
-         * Driver to evaluate post-processing commands, such as copies and filters.
-         * This is run after the main processing finishes. Each post command is 
-         * given to evaluatePost.
-         */
-        private libraryPosts(): void {
-            var posts: any[] = this.library.posts,
-                post: any,
-                i: number;
-
-            for (i = 0; i < posts.length; i += 1) {
-                post = posts[i];
-                post.caller[post.name] = this.evaluatePost(post.caller, post.command, post.path);
-            }
+            return setNew;
         }
 
         /**

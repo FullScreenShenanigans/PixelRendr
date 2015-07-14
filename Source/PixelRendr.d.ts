@@ -1,8 +1,4 @@
 declare module PixelRendr {
-    export interface IPixelRendrEncodeCallback {
-        (result: string, image: HTMLImageElement, source: any): any;
-    }
-
     export interface ISpriteMultiple {
         direction: string;
         multiple: boolean;
@@ -13,6 +9,33 @@ declare module PixelRendr {
         bottomheight: number;
         leftwidth: number;
         middleStretch: boolean;
+    }
+
+    export enum RenderStatus {
+        Raw,
+        Base,
+        Complete
+    }
+
+    export interface IRender {
+        Status: RenderStatus;
+        path: string;
+        reference?: string[];
+        source: string | any[];
+        sprite?: Uint8ClampedArray | ISpriteMultiple;
+    }
+
+    export interface IRenderLibrary {
+        [i: string]: IRenderLibrary | IRender;
+    }
+
+    export interface ILibrary {
+        raws: any;
+        sprites?: IRenderLibrary;
+    }
+
+    export interface IPixelRendrEncodeCallback {
+        (result: string, image: HTMLImageElement, source: any): any;
     }
 
     export interface IPixelRendrSettings {
