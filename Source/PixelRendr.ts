@@ -31,6 +31,33 @@ module PixelRendr {
         Complete
     }
 
+    export class Render {
+        /**
+         * 
+         */
+        status: RenderStatus;
+
+        /**
+         * 
+         */
+        path: string;
+
+        /**
+         * 
+         */
+        reference: string[];
+
+        /**
+         * 
+         */
+        source: string | any[];
+
+        /**
+         * 
+         */
+        sprite: Uint8ClampedArray | ISpriteMultiple;
+    }
+
     /**
      * A moderately unusual graphics module designed to compress images as
      * compressed text blobs and store the text blobs in a StringFilr. These tasks 
@@ -279,7 +306,7 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple {
-            var render: IRender = this.BaseFiler.get(key);
+            var render: Render = this.BaseFiler.get(key);
 
             if (!render) {
                 throw new Error("No sprite found for " + key + ".");
@@ -484,6 +511,7 @@ module PixelRendr {
             var setNew: IRenderLibrary = {},
                 pathChild: string,
                 source: any,
+                render: Render,
                 i: string;
 
             // For each child of the current layer:
@@ -499,22 +527,26 @@ module PixelRendr {
                     case String:
                         // Strings directly become IRenders
                         // setnew[i] = this.ProcessorBase.process(objref, path + " " + i);
-                        setNew[i] = {
-                            "status": RenderStatus.Raw,
-                            "path": pathChild,
-                            "source": source
-                        };
+                        render = new Render();
+
+                        render.status = RenderStatus.Raw;
+                        render.path = pathChild;
+                        render.source = source;
+
+                        setNew[i] = render;
                         break;
 
                     case Array:
                         // Arrays contain a String filter, a String[] source, and any
                         // number of following arguments
-                        setNew[i] = {
-                            "status": RenderStatus.Raw,
-                            "path": pathChild,
-                            "reference": source[1],
-                            "source": source
-                        };
+                        render = new Render();
+
+                        render.status = RenderStatus.Raw;
+                        render.path = pathChild;
+                        render.source = source;
+                        render.reference = source[1];
+
+                        setNew[i] = render;
                         break;
 
                     default:
@@ -522,6 +554,7 @@ module PixelRendr {
                         setNew[i] = this.libraryParse(source, path + " " + i);
                         break;
                 }
+
             }
 
             return setNew;
@@ -530,7 +563,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             if (render.source.constructor === String) {
                 return this.generateSpriteSingleFromRender(render, attributes);
             } else {
@@ -541,8 +574,8 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteSingleFromRender(render: IRender, attributes: any): Uint8ClampedArray {
-            var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path),
+        private generateSpriteSingleFromRender(render: Render, attributes: any): Uint8ClampedArray {
+            var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path, attributes),
                 sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
 
             return sprite;
@@ -551,7 +584,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteCommandFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 sprite: Uint8ClampedArray,
@@ -574,7 +607,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandMultipleFromRender(render: IRender, attributes: any): ISpriteMultiple {
+        private generateSpriteCommandMultipleFromRender(render: Render, attributes: any): ISpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 path: string,
@@ -604,7 +637,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandSameFromRender(render: IRender, attributes: any): Uint8ClampedArray {
+        private generateSpriteCommandSameFromRender(render: Render, attributes: any): Uint8ClampedArray {
             var path: string = render.source[1].join(" "),
                 sprite: Uint8ClampedArray;
 
@@ -620,17 +653,21 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandFilterFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteCommandFilterFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             var path: string = render.source[1].join(" "),
                 filter: any = this.filters[render.source[2]],
-                spriteRaw: any;
+                sprite: any;
 
             if (!filter) {
                 console.warn("Invalid filter provided: " + render.source[2]);
                 filter = {};
             }
 
-            spriteRaw = this.followPath(this.library.raws, render.source[1], 0);
+            sprite = this.followPath(this.library.raws, render.source[1], 0);
+
+            // sprite can be an actual sprite (single or multiple), or an entire
+            // directory in the library
+
 
             return undefined;
         }

@@ -10,16 +10,8 @@ declare module PixelRendr {
         middleStretch: boolean;
     }
 
-    export interface IRender {
-        status: RenderStatus;
-        path: string;
-        reference?: string[];
-        source: string | any[];
-        sprite?: Uint8ClampedArray | ISpriteMultiple;
-    }
-
     export interface IRenderLibrary {
-        [i: string]: IRenderLibrary | IRender;
+        [i: string]: IRenderLibrary | Render;
     }
 
     export interface ILibrary {
