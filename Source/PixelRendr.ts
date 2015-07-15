@@ -551,7 +551,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFilterFromRender(render: IRender, attributes: any): ISpriteMultiple {
+        private generateSpriteFilterFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 sprite: Uint8ClampedArray,
@@ -580,9 +580,13 @@ module PixelRendr {
                     };
 
                 case "same":
-                    if (window.hasOwnProperty("durp")) {
-                        throw "sup";
-                    }
+                    path = render.source[1].join(" ");
+                    sprite = this.ProcessorBase.process(
+                        this.followPath(this.library.raws, render.source[1], 0),
+                        path,
+                        attributes);
+                    sprite = this.ProcessorDims.process(sprite, path, attributes);
+                    return sprite;
             }
         }
 
