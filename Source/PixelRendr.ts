@@ -568,11 +568,8 @@ module PixelRendr {
                         }
                     }
 
-                    // @todo: Move topheight, etc. into attributes (simple switch)
-                    console.log("And", sprites);
-                    console.log("from", sources);
                     return {
-                        "direction": sources[1],
+                        "direction": render.source[1],
                         "multiple": true,
                         "sprites": sprites,
                         "topheight": sources.topheight | 0,
