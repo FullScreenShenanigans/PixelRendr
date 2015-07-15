@@ -534,7 +534,7 @@ module PixelRendr {
             if (render.source.constructor === String) {
                 return this.generateSpriteSingleFromRender(render, attributes);
             } else {
-                return this.generateSpriteFilterFromRender(render, attributes);
+                return this.generateSpriteCommandFromRender(render, attributes);
             }
         }
 
@@ -551,43 +551,88 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFilterFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteCommandFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 sprite: Uint8ClampedArray,
                 path: string,
                 i: string;
 
+            // @todo: use lookup map instead of switch
             switch (render.source[0]) {
                 case "multiple":
-                    for (i in sources) {
-                        if (sources.hasOwnProperty(i)) {
-                            path = render.path + " " + i;
-                            sprite = this.ProcessorBase.process(sources[i], path, attributes);
-                            sprites[i] = this.ProcessorDims.process(sprite, path, attributes);
-                        }
-                    }
-
-                    return {
-                        "direction": render.source[1],
-                        "multiple": true,
-                        "sprites": sprites,
-                        "topheight": sources.topheight | 0,
-                        "rightwidth": sources.rightwidth | 0,
-                        "bottomheight": sources.bottomheight | 0,
-                        "leftwidth": sources.leftwidth | 0,
-                        "middleStretch": sources.middleStretch || false
-                    };
+                    return this.generateSpriteCommandMultipleFromRender(render, attributes);
 
                 case "same":
-                    path = render.source[1].join(" ");
-                    sprite = this.ProcessorBase.process(
-                        this.followPath(this.library.raws, render.source[1], 0),
-                        path,
-                        attributes);
-                    sprite = this.ProcessorDims.process(sprite, path, attributes);
-                    return sprite;
+                    return this.generateSpriteCommandSameFromRender(render, attributes);
+
+                case "filter":
+                    return this.generateSpriteCommandFilterFromRender(render, attributes);
             }
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteCommandMultipleFromRender(render: IRender, attributes: any): ISpriteMultiple {
+            var sources: any = render.source[2],
+                sprites: any = {},
+                path: string,
+                sprite: Uint8ClampedArray,
+                i: string;
+
+            for (i in sources) {
+                if (sources.hasOwnProperty(i)) {
+                    path = render.path + " " + i;
+                    sprite = this.ProcessorBase.process(sources[i], path, attributes);
+                    sprites[i] = this.ProcessorDims.process(sprite, path, attributes);
+                }
+            }
+
+            return {
+                "direction": render.source[1],
+                "multiple": true,
+                "sprites": sprites,
+                "topheight": sources.topheight | 0,
+                "rightwidth": sources.rightwidth | 0,
+                "bottomheight": sources.bottomheight | 0,
+                "leftwidth": sources.leftwidth | 0,
+                "middleStretch": sources.middleStretch || false
+            };
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteCommandSameFromRender(render: IRender, attributes: any): Uint8ClampedArray {
+            var path: string = render.source[1].join(" "),
+                sprite: Uint8ClampedArray;
+
+            sprite = this.ProcessorBase.process(
+                this.followPath(this.library.raws, render.source[1], 0),
+                path,
+                attributes);
+            sprite = this.ProcessorDims.process(sprite, path, attributes);
+
+            return sprite;
+        }
+
+        /**
+         * 
+         */
+        private generateSpriteCommandFilterFromRender(render: IRender, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+            var path: string = render.source[1].join(" "),
+                filter: any = this.filters[render.source[2]],
+                spriteRaw: any;
+
+            if (!filter) {
+                console.warn("Invalid filter provided: " + render.source[2]);
+                filter = {};
+            }
+
+            spriteRaw = this.followPath(this.library.raws, render.source[1], 0);
+
+            return undefined;
         }
 
         /**
