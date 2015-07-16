@@ -313,7 +313,7 @@ module PixelRendr {
             }
 
             if (render.status !== RenderStatus.Complete) {
-                render.sprite = this.generateSpriteFromRender(render, attributes);
+                this.generateSpriteFromRender(render, attributes);
             }
 
             return render.sprite;
@@ -565,10 +565,12 @@ module PixelRendr {
          */
         private generateSpriteFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
             if (render.source.constructor === String) {
-                return this.generateSpriteSingleFromRender(render, attributes);
+                render.sprite = this.generateSpriteSingleFromRender(render, attributes);
             } else {
-                return this.generateSpriteCommandFromRender(render, attributes);
+                render.sprite = this.generateSpriteCommandFromRender(render, attributes);
             }
+
+            render.status = RenderStatus.Complete;
         }
 
         /**
