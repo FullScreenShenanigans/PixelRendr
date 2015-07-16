@@ -563,7 +563,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteFromRender(render: Render, attributes: any): void {
             if (render.source.constructor === String) {
                 render.sprite = this.generateSpriteSingleFromRender(render, attributes);
             } else {
