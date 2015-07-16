@@ -14,13 +14,9 @@
  * The first versions of this library were made many years ago by an 
  * inexperienced author, and have undergone only moderate structural revisions
  * since. There are two key improvements that should happen:
- * 1. On reset, the source library should be mapped to a PartialRender class 
- *    that stores loading status and required ("post") references, to enable
- *    lazy loading. See #71.
  * 2. Once lazy loading is implemented for significantly shorter startup times,
  *    an extra layer of compression should be added to compress the technically
  *    human-readable String sources to a binary-ish format. See #236.
- * 3. Rewrite the heck out of this piece of crap.
  */
 module PixelRendr {
     "use strict";
@@ -63,7 +59,6 @@ module PixelRendr {
      * compressed text blobs and store the text blobs in a StringFilr. These tasks 
      * are performed and cached quickly enough for use in real-time environments, 
      * such as real-time video games.
-     * 
      */
     export class PixelRendr implements IPixelRendr {
         /**
@@ -672,131 +667,6 @@ module PixelRendr {
 
 
             return undefined;
-        }
-
-        /**
-         * Evaluates a post command and returns the result to be used in the 
-         * library. It can be "same", "filter", or "vertical".
-         * 
-         * @param {Object} caller   The place within the library store results in.
-         * @param {Array} command   The command from the library, represented as
-         *                          ["type", [info...]]
-         * @param {String} path   The path to the caller.
-         */
-        private evaluatePost(caller: any, command: any[], path: string): any {
-            var spriteRaw: any,
-                filter: any;
-
-            switch (command[0]) {
-                // Same: just returns a reference to the target
-                // ["same", ["container", "path", "to", "target"]]
-                case "same":
-                    spriteRaw = this.followPath(this.library.raws, command[1], 0);
-
-                    if (spriteRaw.constructor === String) {
-                        return this.ProcessorBase.process(spriteRaw, path);
-                    } else if (spriteRaw.constructor === Array) {
-                        return this.evaluatePost(caller, spriteRaw, path);
-                    }
-                    return this.libraryParse(spriteRaw, path);
-
-                // Filter: takes a reference to the target, and applies a filter to it
-                // ["filter", ["container", "path", "to", "target"], filters.DoThisFilter]
-                case "filter":
-                    // Find the sprite this should be filtering from
-                    spriteRaw = this.followPath(this.library.raws, command[1], 0);
-                    filter = this.filters[command[2]];
-
-                    if (!filter) {
-                        console.warn("Invalid filter provided:", command[2], this.filters);
-                        filter = {};
-                    }
-                    return this.evaluatePostFilter(spriteRaw, path, filter);
-
-                // Multiple: uses more than one image, either vertically or horizontally
-                // Not to be confused with having .repeat = true.
-                // ["multiple", "vertical", {
-                //    top: "...",       // (just once at the top)
-                //    middle: "..."     // (repeated after top)
-                //  }
-                case "multiple":
-                    return this.evaluatePostMultiple(path, command);
-
-                // Commands not evaluated by the switch are unknown and bad
-                default:
-                    console.warn("Unknown post command: '" + command[0] + "'.", caller, command, path);
-            }
-
-        }
-
-        /**
-         * Driver function to recursively apply a filter on a sprite or Object.
-         * 
-         * @param {Mixed} spriteRaw   What the filter is being applied on (either a
-         *                            sprite, or a collection of sprites).    
-         * @param {String} path   The path to the spriteRaw in the library.
-         * @param {Object} filter   The pre-determined filter to apply.
-         */
-        private evaluatePostFilter(spriteRaw: any, path: string, filter: any): any {
-            // If it's just a String, process the sprite normally
-            if (spriteRaw.constructor === String) {
-                return this.ProcessorBase.process(spriteRaw, path, {
-                    filter: filter
-                });
-            }
-
-            // If it's an Array, that's a post that hasn't yet been evaluated: evaluate it by the path
-            if (spriteRaw instanceof Array) {
-                return this.evaluatePostFilter(this.followPath(this.library.raws, spriteRaw[1], 0), spriteRaw[1].join(" "), filter);
-            }
-
-            // If it's a generic Object, go recursively on its children
-            if (spriteRaw instanceof Object) {
-                var output: any = {},
-                    i: string;
-
-                for (i in spriteRaw) {
-                    if (spriteRaw.hasOwnProperty(i)) {
-                        output[i] = this.evaluatePostFilter(spriteRaw[i], path + " " + i, filter);
-                    }
-                }
-
-                return output;
-            }
-
-            // Anything else is a complaint
-            console.warn("Invalid sprite provided for a post filter.", spriteRaw, path, filter);
-        }
-
-        /**
-         * Creates a SpriteMultiple based on a library's command.
-         * 
-         * @param {String} path   The path to the SpriteMultiple.
-         * @param {Array} command   The instructions from the library, in the form 
-         *                          ["multiple", "{direction}", {Information}].
-         */
-        private evaluatePostMultiple(path: string, command: any[]): ISpriteMultiple {
-            var direction: string = command[1],
-                sections: any = command[2],
-                output: ISpriteMultiple = {
-                    "direction": direction,
-                    "multiple": true,
-                    "sprites": {},
-                    "topheight": sections.topheight | 0,
-                    "rightwidth": sections.rightwidth | 0,
-                    "bottomheight": sections.bottomheight | 0,
-                    "leftwidth": sections.leftwidth | 0,
-                    "middleStretch": sections.middleStretch || false
-                },
-                i: string;
-
-            for (i in sections) {
-                if (sections.hasOwnProperty(i)) {
-                    output.sprites[i] = this.ProcessorBase.process(sections[i], path + direction + i);
-                }
-            }
-
-            return output;
         }
 
 
