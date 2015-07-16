@@ -52,6 +52,16 @@ module PixelRendr {
          * 
          */
         sprite: Uint8ClampedArray | ISpriteMultiple;
+
+        /**
+         * 
+         */
+        constructor(status: RenderStatus, path: string, source: string | any[], reference?: string[]) {
+            this.status = status;
+            this.path = path;
+            this.source = source;
+            this.reference = reference;
+        }
     }
 
     /**
@@ -160,8 +170,7 @@ module PixelRendr {
             this.digitsplit = new RegExp(".{1," + this.digitsizeDefault + "}", "g");
 
             this.library = {
-                "raws": settings.library || {},
-                "posts": []
+                "raws": settings.library || {}
             };
 
             this.filters = settings.filters || {};
@@ -506,7 +515,6 @@ module PixelRendr {
             var setNew: IRenderLibrary = {},
                 pathChild: string,
                 source: any,
-                render: Render,
                 i: string;
 
             // For each child of the current layer:
@@ -521,27 +529,13 @@ module PixelRendr {
                 switch (source.constructor) {
                     case String:
                         // Strings directly become IRenders
-                        // setnew[i] = this.ProcessorBase.process(objref, path + " " + i);
-                        render = new Render();
-
-                        render.status = RenderStatus.Raw;
-                        render.path = pathChild;
-                        render.source = source;
-
-                        setNew[i] = render;
+                        setNew[i] = new Render(RenderStatus.Raw, pathChild, source);
                         break;
 
                     case Array:
                         // Arrays contain a String filter, a String[] source, and any
                         // number of following arguments
-                        render = new Render();
-
-                        render.status = RenderStatus.Raw;
-                        render.path = pathChild;
-                        render.source = source;
-                        render.reference = source[1];
-
-                        setNew[i] = render;
+                        setNew[i] = new Render(RenderStatus.Raw, pathChild, source, source[1]);
                         break;
 
                     default:
@@ -662,8 +656,7 @@ module PixelRendr {
 
             sprite = this.followPath(this.library.raws, render.source[1], 0);
 
-            // sprite can be an actual sprite (single or multiple), or an entire
-            // directory in the library
+            // If sprite is an entire directory, 
 
 
             return undefined;

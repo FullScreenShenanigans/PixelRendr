@@ -10,13 +10,13 @@ declare module PixelRendr {
         middleStretch: boolean;
     }
 
-    export interface IRenderLibrary {
-        [i: string]: IRenderLibrary | Render;
-    }
-
     export interface ILibrary {
         raws: any;
         sprites?: IRenderLibrary;
+    }
+
+    export interface IRenderLibrary {
+        [i: string]: IRenderLibrary | Render;
     }
 
     export interface IPixelRendrEncodeCallback {
