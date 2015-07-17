@@ -21,12 +21,17 @@
 module PixelRendr {
     "use strict";
 
+    /**
+     * 
+     */
     export enum RenderStatus {
         Raw,
-        Base,
         Complete
     }
 
+    /**
+     * 
+     */
     export class Render {
         /**
          * 
@@ -51,7 +56,7 @@ module PixelRendr {
         /**
          * 
          */
-        sprite: Uint8ClampedArray | ISpriteMultiple;
+        sprite: Uint8ClampedArray | SpriteMultiple;
 
         /**
          * 
@@ -63,6 +68,63 @@ module PixelRendr {
             this.reference = reference;
         }
     }
+
+    /**
+     * 
+     */
+    export class SpriteMultiple {
+        /**
+         * 
+         */
+        sprites: any;
+
+        /**
+         * 
+         */
+        direction: string;
+
+        /**
+         * 
+         */
+        topheight: number;
+
+        /**
+         * 
+         */
+        rightwidth: number;
+
+        /**
+         * 
+         */
+        bottomheight: number;
+
+        /**
+         * 
+         */
+        leftwidth: number;
+
+        /**
+         * 
+         */
+        middleStretch: boolean;
+
+        /**
+         * 
+         */
+        constructor(sprites: ISpritesContainer, render: Render) {
+            var sources: any = render.source[2];
+
+            this.sprites = sprites;
+            this.direction = render.source[1];
+
+            this.topheight = sources.topheight | 0;
+            this.rightwidth = sources.rightwidth | 0;
+            this.bottomheight = sources.bottomheight | 0;
+            this.leftwidth = sources.leftwidth | 0;
+            this.middleStretch = sources.middleStretch || false;
+        }
+    }
+
 
     /**
      * A moderately unusual graphics module designed to compress images as
@@ -287,8 +349,8 @@ module PixelRendr {
         /**
          * @param {String} key
          * @return {Mixed} Returns the base sprite for a key. This will either be a
-         *                 Uint8ClampedArray if a sprite is found, or the deepest
-         *                 Object in the library.
+         *                 Uint8ClampedArrayor SpriteMultiple if a sprite is found, 
+         *                 or the deepest matching Object in the library.
          */
         getSpriteBase(key: string): void {
             return this.BaseFiler.get(key);
@@ -309,7 +371,7 @@ module PixelRendr {
          *                              and height Numbers are required.
          * @return {Uint8ClampedArray} 
          */
-        decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        decode(key: string, attributes: any): Uint8ClampedArray | SpriteMultiple {
             var render: Render = this.BaseFiler.get(key);
 
             if (!render) {
@@ -318,6 +380,10 @@ module PixelRendr {
 
             if (render.status !== RenderStatus.Complete) {
                 this.generateSpriteFromRender(render, attributes);
+            }
+
+            if (!render.sprite || (<any>render.sprite).length === 0) {
+                throw "wat";
             }
 
             return render.sprite;
@@ -398,8 +464,7 @@ module PixelRendr {
                     tree[data[i]]
                     && tree[data[i]][data[i + 1]]
                     && tree[data[i]][data[i + 1]][data[i + 2]]
-                    && tree[data[i]][data[i + 1]][data[i + 2]][data[i + 3]]
-                    ) {
+                    && tree[data[i]][data[i + 1]][data[i + 2]][data[i + 3]]) {
                     continue;
                 }
 
@@ -575,7 +640,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteCommandFromRender(render: Render, attributes: any): Uint8ClampedArray | SpriteMultiple {
             var sources: any = render.source[2],
                 sprites: any = {},
                 sprite: Uint8ClampedArray,
@@ -583,26 +648,28 @@ module PixelRendr {
                 i: string;
 
             // @todo: use lookup map instead of switch
+            console.log("ooh", render.source[0]);
             switch (render.source[0]) {
                 case "multiple":
                     return this.generateSpriteCommandMultipleFromRender(render, attributes);
 
                 case "same":
-                    return this.generateSpriteCommandSameFromRender(render, attributes);
+                    return <any>this.generateSpriteCommandSameFromRender(render, attributes);
 
                 case "filter":
-                    return this.generateSpriteCommandFilterFromRender(render, attributes);
+                    return <any>this.generateSpriteCommandFilterFromRender(render, attributes);
             }
         }
 
         /**
          * 
          */
-        private generateSpriteCommandMultipleFromRender(render: Render, attributes: any): ISpriteMultiple {
+        private generateSpriteCommandMultipleFromRender(render: Render, attributes: any): SpriteMultiple {
             var sources: any = render.source[2],
-                sprites: any = {},
-                path: string,
+                sprites: ISpritesContainer = {},
                 sprite: Uint8ClampedArray,
+                path: string,
+                output = new SpriteMultiple(sprites, render),
                 i: string;
 
             for (i in sources) {
@@ -613,38 +680,26 @@ module PixelRendr {
                 }
             }
 
-            return {
-                "direction": render.source[1],
-                "multiple": true,
-                "sprites": sprites,
-                "topheight": sources.topheight | 0,
-                "rightwidth": sources.rightwidth | 0,
-                "bottomheight": sources.bottomheight | 0,
-                "leftwidth": sources.leftwidth | 0,
-                "middleStretch": sources.middleStretch || false
-            };
+            return output;
         }
 
         /**
          * 
          */
-        private generateSpriteCommandSameFromRender(render: Render, attributes: any): Uint8ClampedArray {
-            var path: string = render.source[1].join(" "),
-                sprite: Uint8ClampedArray;
+        private generateSpriteCommandSameFromRender(render: Render, attributes: any): Uint8ClampedArray | SpriteMultiple {
+            var output: IRenderOutput = this.followPath(this.library.sprites, render.source[1], 0);
 
-            sprite = this.ProcessorBase.process(
-                this.followPath(this.library.raws, render.source[1], 0),
-                path,
-                attributes);
-            sprite = this.ProcessorDims.process(sprite, path, attributes);
+            if (output.constructor === Render) {
+                return render.sprite;
+            }
 
-            return sprite;
+            return undefined;
         }
 
         /**
          * 
          */
-        private generateSpriteCommandFilterFromRender(render: Render, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+        private generateSpriteCommandFilterFromRender(render: Render, attributes: any): IRenderOutput {
             var path: string = render.source[1].join(" "),
                 filter: any = this.filters[render.source[2]],
                 sprite: any;
@@ -656,8 +711,7 @@ module PixelRendr {
 
             sprite = this.followPath(this.library.raws, render.source[1], 0);
 
-            // If sprite is an entire directory, 
-
+            throw "sup";
 
             return undefined;
         }
@@ -769,7 +823,7 @@ module PixelRendr {
          * @return {String} 
          */
         private spriteApplyFilter(colors: string, key: string, attributes: any): string {
-            // If there isn't a filter (as is the normal), just return the sprite
+            // If there isn't a filter (as is the norm), just return the sprite
             if (!attributes || !attributes.filter) {
                 return colors;
             }
@@ -906,7 +960,7 @@ module PixelRendr {
          * @return {Uint8ClampedArray}
          */
         private flipSpriteArrayHoriz(sprite: Uint8ClampedArray, attributes: any): Uint8ClampedArray {
-            var length: number = sprite.length,
+            var length: number = sprite.length + 0,
                 width: number = attributes[this.spriteWidth] + 0,
                 newsprite: Uint8ClampedArray = new this.Uint8ClampedArray(length),
                 rowsize: number = width * 4,

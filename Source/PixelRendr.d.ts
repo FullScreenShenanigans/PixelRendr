@@ -1,15 +1,4 @@
 declare module PixelRendr {
-    export interface ISpriteMultiple {
-        direction: string;
-        multiple: boolean;
-        sprites: any;
-        topheight: number;
-        rightwidth: number;
-        bottomheight: number;
-        leftwidth: number;
-        middleStretch: boolean;
-    }
-
     export interface ILibrary {
         raws: any;
         sprites?: IRenderLibrary;
@@ -19,8 +8,16 @@ declare module PixelRendr {
         [i: string]: IRenderLibrary | Render;
     }
 
+    type IRenderOutput = Uint8ClampedArray | SpriteMultiple | IRenderLibrary | {
+        [i: string]: IRenderOutput;
+    }
+
     export interface IPixelRendrEncodeCallback {
         (result: string, image: HTMLImageElement, source: any): any;
+    }
+
+    export interface ISpritesContainer {
+        [i: string]: Uint8ClampedArray;
     }
 
     export interface IPixelRendrSettings {
@@ -83,7 +80,7 @@ declare module PixelRendr {
         getProcessorDims(): ChangeLinr.IChangeLinr;
         getProcessorEncode(): ChangeLinr.IChangeLinr;
         getSpriteBase(key: string): void;
-        decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
+        decode(key: string, attributes: any): Uint8ClampedArray | SpriteMultiple;
         encode(image: HTMLImageElement, callback: IPixelRendrEncodeCallback, source: any): string;
         encodeUri(uri: string, callback: IPixelRendrEncodeCallback): void;
         generatePaletteFromRawData(data: Uint8ClampedArray, forceZeroColor?: boolean, giveArrays?: boolean): Uint8ClampedArray[];
