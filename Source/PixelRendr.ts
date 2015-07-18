@@ -61,6 +61,16 @@ module PixelRendr {
         /**
          * 
          */
+        container: IRenderLibrary;
+
+        /**
+         * 
+         */
+        key: string;
+
+        /**
+         * 
+         */
         constructor(status: RenderStatus, path: string, source: string | any[], reference?: string[]) {
             this.status = status;
             this.path = path;
@@ -609,6 +619,11 @@ module PixelRendr {
                         break;
                 }
 
+                // If a Render was created, its container should be setNew
+                if (setNew[i].constructor === Render) {
+                    (<Render>setNew[i]).container = setNew;
+                    (<Render>setNew[i]).key = i;
+                }
             }
 
             return setNew;
@@ -686,12 +701,15 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandSameFromRender(render: Render, attributes: any): Uint8ClampedArray | SpriteMultiple {
+        private generateSpriteCommandSameFromRender(render: Render, attributes: any): IRenderOutput {
             var output: IRenderOutput = this.followPath(this.library.sprites, render.source[1], 0);
 
             if (output.constructor === Render) {
                 return render.sprite;
             }
+
+            // Since it's a directory, copy it, and followPath again
+            throw "hey";
 
             return undefined;
         }
@@ -702,15 +720,20 @@ module PixelRendr {
         private generateSpriteCommandFilterFromRender(render: Render, attributes: any): IRenderOutput {
             var path: string = render.source[1].join(" "),
                 filter: any = this.filters[render.source[2]],
-                sprite: any;
+                found: any;
 
             if (!filter) {
                 console.warn("Invalid filter provided: " + render.source[2]);
                 filter = {};
             }
 
-            sprite = this.followPath(this.library.raws, render.source[1], 0);
+            found = this.followPath(this.library.raws, render.source[1], 0);
 
+            if (found.constructor === Render) {
+                return found.sprite;
+            }
+
+            // Since it's a directory, copy it, and make a filter
             throw "sup";
 
             return undefined;
