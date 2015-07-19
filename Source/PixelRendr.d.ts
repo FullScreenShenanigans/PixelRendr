@@ -20,6 +20,14 @@ declare module PixelRendr {
         [i: string]: Uint8ClampedArray;
     }
 
+    export interface IFilter {
+        [i: string]: string;
+    }
+
+    export interface IFilterContainer {
+        [i: string]: IFilter;
+    }
+
     export interface IPixelRendrSettings {
         /**
          * The palette of colors to use for sprites. This should be a number[][]
@@ -35,7 +43,7 @@ declare module PixelRendr {
         /**
          * Filters that may be used by sprites in the library.
          */
-        filters?: any;
+        filters?: IFilterContainer;
 
         /**
          * An amount to expand sprites by when processing (by default, 1 for not at
