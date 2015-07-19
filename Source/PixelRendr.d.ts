@@ -20,8 +20,16 @@ declare module PixelRendr {
         [i: string]: Uint8ClampedArray;
     }
 
+    export interface ISpriteAttributes {
+        filter?: IFilter;
+        [i: string]: number | IFilter;
+    }
+
     export interface IFilter {
-        [i: string]: string;
+        0: string;
+        1: {
+            [i: string]: string;
+        }
     }
 
     export interface IFilterContainer {
