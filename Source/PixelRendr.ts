@@ -397,7 +397,7 @@ module PixelRendr {
             }
 
             if (render.status !== RenderStatus.Complete) {
-                this.generateSpriteFromRender(render, key, attributes);
+                render.sprite = this.generateSpriteFromRender(render, key, attributes);
             }
 
             if (!render.sprite || (<any>render.sprite).length === 0) {
@@ -640,11 +640,11 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFromRender(render: Render, key: string, attributes: ISpriteAttributes): void {
+        private generateSpriteFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
             if (render.source.constructor === String) {
-                render.sprite = this.generateSpriteSingleFromRender(render, key, attributes);
+                return this.generateSpriteSingleFromRender(render, key, attributes);
             } else {
-                render.sprite = this.generateSpriteCommandFromRender(render, key, attributes);
+                return this.generateSpriteCommandFromRender(render, key, attributes);
             }
 
             render.status = RenderStatus.Complete;
@@ -676,10 +676,10 @@ module PixelRendr {
                     return this.generateSpriteCommandMultipleFromRender(render, key, attributes);
 
                 case "same":
-                    return <any>this.generateSpriteCommandSameFromRender(render, key, attributes);
+                    return this.generateSpriteCommandSameFromRender(render, key, attributes);
 
                 case "filter":
-                    return <any>this.generateSpriteCommandFilterFromRender(render, key, attributes);
+                    return this.generateSpriteCommandFilterFromRender(render, key, attributes);
             }
         }
 
@@ -709,8 +709,11 @@ module PixelRendr {
          * 
          */
         private generateSpriteCommandSameFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            render.container[render.key] = this.followPath(this.library.sprites, render.source[1], 0);
-            return this.decode(key, attributes);
+            var replaced = this.followPath(this.library.sprites, render.source[1], 0);
+
+            render.container[render.key] = replaced;
+
+            return replaced.sprite;
         }
 
         /**
@@ -728,24 +731,28 @@ module PixelRendr {
             // If a Render was found, simply filter it directly
             if (found.constructor === Render) {
                 return this.generateSpriteFromFilter(<Render>found, filter, key, attributes);
+            } else {
+                // Otherwise it's an IRenderLibrary; go through that recursively
+                render.container[render.key] = this.generateSpritesFromFilter(<IRenderLibrary>found, filter);
+                throw "sup";
+                return undefined;
             }
 
-            // Otherwise it's an IRenderLibrary; go through that recursively
-            render.container[render.key] = this.generateSpritesFromFilter(<IRenderLibrary>found, filter);
-            return this.decode(key, attributes);
         }
 
         /**
          * 
          */
         private generateSpriteFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path,
-                {
-                    "filter": filter
-                }),
-                sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
+            //var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path,
+            //    {
+            //        "filter": filter
+            //    }),
+            //    sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
 
-            return sprite;
+            //return sprite;
+            
+            throw "yo";
         }
 
         /**
