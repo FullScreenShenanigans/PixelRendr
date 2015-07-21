@@ -623,7 +623,7 @@ module PixelRendr {
 
                     default:
                         // If it's anything else, simply recurse
-                        setNew[i] = this.libraryParse(source, path + " " + i);
+                        setNew[i] = this.libraryParse(source, pathChild);
                         break;
                 }
 
@@ -709,11 +709,21 @@ module PixelRendr {
          * 
          */
         private generateSpriteCommandSameFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var replaced = this.followPath(this.library.sprites, render.source[1], 0);
+            var replacer = this.followPath(this.library.sprites, render.source[1], 0);
 
-            render.container[render.key] = replaced;
+            // BaseFiler will need to remember the new entry for the key
+            this.BaseFiler.clearCached(key);
 
-            return replaced.sprite;
+            render.container[render.key] = replacer;
+
+            // If a Render was found, simply reference its sprite directly
+            if (replacer.constructor === Render) {
+                return replacer.sprite;
+            } 
+
+            // Otherwise it's an IRenderLibrary, so it becomes necessary to traverse
+            // the library again to find the sub-directory in that library
+            return this.decode(key, attributes);
         }
 
         /**
@@ -722,7 +732,8 @@ module PixelRendr {
         private generateSpriteCommandFilterFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
             var path: string = render.source[1].join(" "),
                 filter: IFilter = this.filters[render.source[2]],
-                found: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0);
+                found: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0),
+                filtered: Render | IRenderLibrary;
 
             if (!filter) {
                 console.warn("Invalid filter provided: " + render.source[2]);
@@ -730,36 +741,74 @@ module PixelRendr {
 
             // If a Render was found, simply filter it directly
             if (found.constructor === Render) {
-                return this.generateSpriteFromFilter(<Render>found, filter, key, attributes);
+                (<Render>found).sprite = this.generateSpriteFromFilter(<Render>found, filter, key, attributes);
+                filtered = found;
             } else {
                 // Otherwise it's an IRenderLibrary; go through that recursively
-                render.container[render.key] = this.generateSpritesFromFilter(<IRenderLibrary>found, filter);
-                throw "sup";
-                return undefined;
+                filtered = this.generateSpritesFromFilter(<IRenderLibrary>found, filter);
             }
 
+            render.container[render.key] = filtered;
+
+            if (filtered.constructor === Render) {
+                return (<Render>filtered).sprite;
+            } else {
+                return this.decode(key, attributes);
+            }
         }
 
         /**
          * 
          */
         private generateSpriteFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            //var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path,
-            //    {
-            //        "filter": filter
-            //    }),
-            //    sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
+            if (true) {
+                return this.generateSpriteSingleFromFilter(render, filter, key, attributes);
+            } else {
+                return this.generateSpriteMultipleFromFilter(render, filter, key, attributes);
+            }
+        }
 
-            //return sprite;
-            
-            throw "yo";
+        /**
+         * 
+         */
+        private generateSpriteSingleFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+            var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, render.path,
+                {
+                    "filter": filter
+                }),
+                sprite: Uint8ClampedArray = this.ProcessorDims.process(base, render.path, attributes);
+
+            return sprite;
+        }
+
+        private generateSpriteMultipleFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): SpriteMultiple {
+            throw "copypasta";
         }
 
         /**
          * 
          */
         private generateSpritesFromFilter(directory: IRenderLibrary, filter: IFilter): IRenderLibrary {
-            throw "hey";
+            var output: IRenderLibrary = {},
+                child: Render | IRenderLibrary,
+                i: string;
+
+            for (i in directory) {
+                if (!directory.hasOwnProperty(i)) {
+                    continue;
+                }
+
+                child = directory[i];
+
+                // TODO: What about SpriteMultiples?
+                if (child.constructor === Render) {
+                    output[i] = new Render(RenderStatus.Raw,(<Render>child).path,(<Render>child).source);
+                } else {
+                    output[i] = this.generateSpritesFromFilter(<IRenderLibrary>child, filter);
+                }
+            }
+
+            return output;
         }
 
 
