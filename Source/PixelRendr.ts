@@ -40,7 +40,7 @@ module PixelRendr {
     /**
      * 
      */
-    export class Render {
+    export class Render implements IRender {
         /**
          * 
          */
@@ -90,11 +90,11 @@ module PixelRendr {
     /**
      * 
      */
-    export class SpriteMultiple {
+    export class SpriteMultiple implements ISpriteMultiple {
         /**
          * 
          */
-        sprites: any;
+        sprites: ISpritesContainer;
 
         /**
          * 
@@ -142,7 +142,6 @@ module PixelRendr {
             this.middleStretch = sources.middleStretch || false;
         }
     }
-
 
     /**
      * A moderately unusual graphics module designed to compress images as
@@ -761,7 +760,7 @@ module PixelRendr {
          * 
          */
         private generateSpriteFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            if (true) {
+            if (render.sprite.constructor === Uint8ClampedArray) {
                 return this.generateSpriteSingleFromFilter(render, filter, key, attributes);
             } else {
                 return this.generateSpriteMultipleFromFilter(render, filter, key, attributes);
@@ -782,7 +781,25 @@ module PixelRendr {
         }
 
         private generateSpriteMultipleFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): SpriteMultiple {
-            throw "copypasta";
+            var sources: any = render.source[2],
+                sprites: ISpritesContainer = {},
+                sprite: Uint8ClampedArray,
+                path: string,
+                output = new SpriteMultiple(sprites, render),
+                filterInfo: any = {
+                    "filter": filter[1]
+                },
+                i: string;
+
+            for (i in sources) {
+                if (sources.hasOwnProperty(i)) {
+                    path = render.path + " " + i;
+                    sprite = this.ProcessorBase.process(sources[i], path, filterInfo);
+                    sprites[i] = this.ProcessorDims.process(sprite, path, attributes);
+                }
+            }
+
+            return output;
         }
 
         /**

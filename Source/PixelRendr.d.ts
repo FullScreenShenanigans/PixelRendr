@@ -3,9 +3,19 @@ declare module PixelRendr {
         raws: any;
         sprites?: IRenderLibrary;
     }
+    
+    export interface IRender {
+        status: RenderStatus;
+        path: string;
+        reference: string[];
+        source: string | any[];
+        sprite: Uint8ClampedArray | ISpriteMultiple;
+        container: IRenderLibrary;
+        key: string;
+    }
 
     export interface IRenderLibrary {
-        [i: string]: IRenderLibrary | Render;
+        [i: string]: IRenderLibrary | IRender;
     }
 
     type IRenderOutput = Uint8ClampedArray | SpriteMultiple | IRenderLibrary | {
@@ -34,6 +44,16 @@ declare module PixelRendr {
 
     export interface IFilterContainer {
         [i: string]: IFilter;
+    }
+    
+    export interface ISpriteMultiple {
+        sprites: ISpritesContainer;
+        direction: string;
+        topheight: number;
+        rightwidth: number;
+        bottomheight: number;
+        leftwidth: number;
+        middleStretch: boolean;
     }
 
     export interface IPixelRendrSettings {
