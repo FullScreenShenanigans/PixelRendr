@@ -752,6 +752,7 @@ module PixelRendr {
             if (filtered.constructor === Render) {
                 return (<Render>filtered).sprite;
             } else {
+                this.BaseFiler.clearCached(key);
                 return this.decode(key, attributes);
             }
         }
@@ -760,6 +761,10 @@ module PixelRendr {
          * 
          */
         private generateSpriteFromFilter(render: Render, filter: IFilter, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+            if (render.status === RenderStatus.Raw) {
+                render.sprite = this.generateSpriteFromRender(render, key, attributes);
+            }
+
             if (render.sprite.constructor === Uint8ClampedArray) {
                 return this.generateSpriteSingleFromFilter(render, filter, key, attributes);
             } else {
