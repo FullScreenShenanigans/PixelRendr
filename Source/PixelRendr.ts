@@ -12,7 +12,7 @@
 
 /*
 cls && cd PixelRendr && grunt --force && cd .. && copy PixelRendr\Distribution\PixelRendr-0.2.0.ts GameStartr\Source\References /y && cd GameStartr && grunt --force && cd .. && copy GameStartr\Distribution\GameStartr-0.2.0.?s FullScreenMario\Source\References /y 
-*/ 
+*/
 
 
 /**
@@ -390,6 +390,10 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+            if (key.indexOf("Goomba") !== -1) {
+                console.log("decode", key);
+            }
+
             var render: Render = this.BaseFiler.get(key);
 
             if (!render) {
@@ -664,13 +668,10 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var sources: any = render.source[2],
-                sprites: any = {},
-                sprite: Uint8ClampedArray,
-                path: string,
-                i: string;
-
+        private generateSpriteCommandFromRender(
+            render: Render,
+            key: string,
+            attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
             // @todo: use lookup map instead of switch
             switch (render.source[0]) {
                 case "multiple":
@@ -692,7 +693,7 @@ module PixelRendr {
                 sprites: ISpritesContainer = {},
                 sprite: Uint8ClampedArray,
                 path: string,
-                output = new SpriteMultiple(sprites, render),
+                output: SpriteMultiple = new SpriteMultiple(sprites, render),
                 i: string;
 
             for (i in sources) {
@@ -709,8 +710,11 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandSameFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var replacer = this.followPath(this.library.sprites, render.source[1], 0);
+        private generateSpriteCommandSameFromRender(
+            render: Render,
+            key: string,
+            attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+            var replacer: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0);
 
             // BaseFiler will need to remember the new entry for the key
             this.BaseFiler.clearCached(key);
@@ -719,8 +723,8 @@ module PixelRendr {
 
             // If a Render was found, simply reference its sprite directly
             if (replacer.constructor === Render) {
-                return replacer.sprite;
-            } 
+                return (<Render>replacer).sprite;
+            }
 
             // Otherwise it's an IRenderLibrary, so it becomes necessary to traverse
             // the library again to find the sub-directory in that library
@@ -730,7 +734,10 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteCommandFilterFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+        private generateSpriteCommandFilterFromRender(
+            render: Render,
+            key: string,
+            attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
             var filter: IFilter = this.filters[render.source[2]],
                 found: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0),
                 filtered: Render | IRenderLibrary;
