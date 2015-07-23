@@ -3,15 +3,15 @@ declare module PixelRendr {
         raws: any;
         sprites?: IRenderLibrary;
     }
-    
+
     export interface IRender {
         status: RenderStatus;
-        path: string;
         reference: string[];
         source: string | any[];
         sprite: Uint8ClampedArray | ISpriteMultiple;
         container: IRenderLibrary;
         key: string;
+        filter: IFilterAttributes;
     }
 
     export interface IRenderLibrary {
@@ -44,6 +44,10 @@ declare module PixelRendr {
 
     export interface IFilterContainer {
         [i: string]: IFilter;
+    }
+
+    export interface IFilterAttributes {
+        filter: IFilter;
     }
     
     export interface ISpriteMultiple {
