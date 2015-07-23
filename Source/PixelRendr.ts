@@ -14,7 +14,6 @@
 cls && cd PixelRendr && grunt --force && cd .. && copy PixelRendr\Distribution\PixelRendr-0.2.0.ts GameStartr\Source\References /y && cd GameStartr && grunt --force && cd .. && copy GameStartr\Distribution\GameStartr-0.2.0.?s FullScreenMario\Source\References /y 
 */
 
-
 /**
  * @todo
  * The first versions of this library were made many years ago by an 
@@ -390,22 +389,24 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            if (key.indexOf("Goomba") !== -1) {
-                console.log("decode", key);
-            }
-
             var render: Render = this.BaseFiler.get(key);
 
             if (!render) {
                 throw new Error("No sprite found for " + key + ".");
             }
 
+            // When this if guard is commented out, flipping is good
+            ///
+            /// Looks like a render is being returned even though it shouldn't be
+            /// (different key, due to += " flipped")
+            ///  
+            /// It's because it *is* the same render!
             if (render.status !== RenderStatus.Complete) {
                 render.sprite = this.generateSpriteFromRender(render, key, attributes);
             }
 
-            if (!render.sprite || (<any>render.sprite).length === 0) {
-                throw "wat";
+            if (!render.sprite || (<Uint8ClampedArray>render.sprite).length === 0) {
+                throw new Error("Could not generate sprite for " + key + ".");
             }
 
             return render.sprite;
@@ -567,16 +568,6 @@ module PixelRendr {
             readloc: number = 0,
             writeloc: number = 0,
             writelength: number = Math.max(0, Math.min(source.length, destination.length))): void {
-            if (!source || !destination || readloc < 0 || writeloc < 0 || writelength <= 0) {
-                return;
-            }
-            if (readloc >= source.length || writeloc >= destination.length) {
-                // console.log("Alert: memcpyU8 requested out of bounds!");
-                // console.log("source, destination, readloc, writeloc, writelength");
-                // console.log(arguments);
-                return;
-            }
-
             // JIT compilcation help
             var lwritelength: number = writelength + 0,
                 lwriteloc: number = writeloc + 0,
@@ -994,16 +985,16 @@ module PixelRendr {
         private spriteRepeatRows(sprite: Uint8ClampedArray, key: string, attributes: ISpriteAttributes): Uint8ClampedArray {
             var parsed: Uint8ClampedArray = new this.Uint8ClampedArray(sprite.length * this.scale),
                 rowsize: number = <number>attributes[this.spriteWidth] * 4,
-                heightscale: number = <number>attributes[this.spriteHeight] * this.scale,
+                height: number = <number>attributes[this.spriteHeight] / this.scale,
                 readloc: number = 0,
                 writeloc: number = 0,
-                si: number,
-                sj: number;
+                i: number,
+                j: number;
 
             // For each row:
-            for (si = 0; si < heightscale; ++si) {
+            for (i = 0; i < height; ++i) {
                 // Add it to parsed x scale
-                for (sj = 0; sj < this.scale; ++sj) {
+                for (j = 0; j < this.scale; ++j) {
                     this.memcpyU8(sprite, parsed, readloc, writeloc, rowsize);
                     writeloc += rowsize;
                 }
