@@ -5,10 +5,9 @@ declare module PixelRendr {
     }
 
     export interface IRender {
-        status: RenderStatus;
         reference: string[];
         source: string | any[];
-        sprite: Uint8ClampedArray | ISpriteMultiple;
+        sprites: IRenderSprites;
         container: IRenderLibrary;
         key: string;
         filter: IFilterAttributes;
@@ -18,15 +17,15 @@ declare module PixelRendr {
         [i: string]: IRenderLibrary | IRender;
     }
 
-    type IRenderOutput = Uint8ClampedArray | SpriteMultiple | IRenderLibrary | {
-        [i: string]: IRenderOutput;
+    export interface IRenderSprites {
+        [i: string]: Uint8ClampedArray | ISpriteMultiple;
     }
 
     export interface IPixelRendrEncodeCallback {
         (result: string, image: HTMLImageElement, source: any): any;
     }
 
-    export interface ISpritesContainer {
+    export interface IClampedArraysContainer {
         [i: string]: Uint8ClampedArray;
     }
 
@@ -51,7 +50,7 @@ declare module PixelRendr {
     }
     
     export interface ISpriteMultiple {
-        sprites: ISpritesContainer;
+        sprites: IClampedArraysContainer;
         direction: string;
         topheight: number;
         rightwidth: number;

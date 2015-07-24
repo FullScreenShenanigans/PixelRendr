@@ -31,20 +31,7 @@ module PixelRendr {
     /**
      * 
      */
-    export enum RenderStatus {
-        Raw,
-        Complete
-    }
-
-    /**
-     * 
-     */
     export class Render implements IRender {
-        /**
-         * 
-         */
-        status: RenderStatus;
-
         /**
          * 
          */
@@ -58,7 +45,7 @@ module PixelRendr {
         /**
          * 
          */
-        sprite: Uint8ClampedArray | SpriteMultiple;
+        sprites: IRenderSprites;
 
         /**
          * 
@@ -83,7 +70,7 @@ module PixelRendr {
             this.reference = reference;
             this.filter = filter;
 
-            this.status = RenderStatus.Raw;
+            this.sprites = {};
         }
     }
 
@@ -94,7 +81,7 @@ module PixelRendr {
         /**
          * 
          */
-        sprites: ISpritesContainer;
+        sprites: IClampedArraysContainer;
 
         /**
          * 
@@ -129,7 +116,7 @@ module PixelRendr {
         /**
          * 
          */
-        constructor(sprites: ISpritesContainer, render: Render) {
+        constructor(sprites: IClampedArraysContainer, render: Render) {
             var sources: any = render.source[2];
 
             this.sprites = sprites;
@@ -389,27 +376,29 @@ module PixelRendr {
          * @return {Uint8ClampedArray} 
          */
         decode(key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var render: Render = this.BaseFiler.get(key);
+            var render: Render = this.BaseFiler.get(key),
+                sprite: Uint8ClampedArray | SpriteMultiple;
 
             if (!render) {
                 throw new Error("No sprite found for " + key + ".");
             }
 
-            // When this if guard is commented out, flipping is good
-            ///
-            /// Looks like a render is being returned even though it shouldn't be
-            /// (different key, due to += " flipped")
-            ///  
-            /// It's because it *is* the same render!
-            if (render.status !== RenderStatus.Complete) {
-                render.sprite = this.generateSpriteFromRender(render, key, attributes);
+            if (key === "Overworld Castle Alt2 Scenery Cloud1 Cloud1") {
+                var x = 7;
             }
 
-            if (!render.sprite || (<Uint8ClampedArray>render.sprite).length === 0) {
+            // If the render doesn't have a listing for this key, create one
+            if (!render.sprites.hasOwnProperty(key)) {
+                this.generateSpriteFromRender(render, key, attributes);
+            }
+
+            sprite = render.sprites[key];
+
+            if (!sprite || (sprite.constructor === Uint8ClampedArray && (<Uint8ClampedArray>sprite).length === 0)) {
                 throw new Error("Could not generate sprite for " + key + ".");
             }
 
-            return render.sprite;
+            return sprite;
         }
 
         /**
@@ -633,7 +622,7 @@ module PixelRendr {
         /**
          * 
          */
-        private generateSpriteFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
+        private generateSpriteFromRender(render: Render, key: string, attributes: ISpriteAttributes): void {
             var sprite: Uint8ClampedArray | SpriteMultiple;
 
             if (render.source.constructor === String) {
@@ -642,12 +631,13 @@ module PixelRendr {
                 sprite = this.generateSpriteCommandFromRender(render, key, attributes);
             }
 
-            render.status = RenderStatus.Complete;
-            return sprite;
+            render.sprites[key] = sprite;
         }
 
         /**
          * 
+         * 
+         * @todo Could initialize the base once elsewhere, instead of repeatedly here...
          */
         private generateSpriteSingleFromRender(render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray {
             var base: Uint8ClampedArray = this.ProcessorBase.process(render.source, key, render.filter),
@@ -681,7 +671,7 @@ module PixelRendr {
          */
         private generateSpriteCommandMultipleFromRender(render: Render, key: string, attributes: ISpriteAttributes): SpriteMultiple {
             var sources: any = render.source[2],
-                sprites: ISpritesContainer = {},
+                sprites: IClampedArraysContainer = {},
                 sprite: Uint8ClampedArray,
                 path: string,
                 output: SpriteMultiple = new SpriteMultiple(sprites, render),
@@ -705,20 +695,13 @@ module PixelRendr {
             render: Render,
             key: string,
             attributes: ISpriteAttributes): Uint8ClampedArray | SpriteMultiple {
-            var replacer: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0);
+            // The (now temporary) Render's container is given the Render or directory
+            // referenced by the source path
+            render.container[render.key] = this.followPath(this.library.sprites, render.source[1], 0);
 
-            // BaseFiler will need to remember the new entry for the key
+            // BaseFiler will need to remember the new entry for the key,
+            // so the cache is cleared and decode restarted
             this.BaseFiler.clearCached(key);
-
-            render.container[render.key] = replacer;
-
-            // If a Render was found, simply reference its sprite directly
-            if (replacer.constructor === Render) {
-                return (<Render>replacer).sprite;
-            }
-
-            // Otherwise it's an IRenderLibrary, so it becomes necessary to traverse
-            // the library again to find the sub-directory in that library
             return this.decode(key, attributes);
         }
 
@@ -746,17 +729,16 @@ module PixelRendr {
                         "filter": filter
                     });
 
-                (<Render>filtered).sprite = this.generateSpriteFromRender(<Render>found, key, attributes);
+                this.generateSpriteFromRender(<Render>filtered, key, attributes);
             } else {
                 // Otherwise it's an IRenderLibrary; go through that recursively
                 filtered = this.generateRendersFromFilter(<IRenderLibrary>found, filter);
-
             }
 
             render.container[render.key] = filtered;
 
             if (filtered.constructor === Render) {
-                return (<Render>filtered).sprite;
+                return (<Render>filtered).sprites[key];
             } else {
                 this.BaseFiler.clearCached(key);
                 return this.decode(key, attributes);
