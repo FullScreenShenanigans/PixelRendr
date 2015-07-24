@@ -9,11 +9,6 @@
 
 // @include ../Source/PixelRendr.d.ts
 
-
-/*
-cls && cd PixelRendr && grunt --force && cd .. && copy PixelRendr\Distribution\PixelRendr-0.2.0.ts GameStartr\Source\References /y && cd GameStartr && grunt --force && cd .. && copy GameStartr\Distribution\GameStartr-0.2.0.?s FullScreenMario\Source\References /y 
-*/
-
 /**
  * @todo
  * The first versions of this library were made many years ago by an 
