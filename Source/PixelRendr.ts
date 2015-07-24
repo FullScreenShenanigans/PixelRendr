@@ -378,10 +378,6 @@ module PixelRendr {
                 throw new Error("No sprite found for " + key + ".");
             }
 
-            if (key === "Overworld Castle Alt2 Scenery Cloud1 Cloud1") {
-                var x = 7;
-            }
-
             // If the render doesn't have a listing for this key, create one
             if (!render.sprites.hasOwnProperty(key)) {
                 this.generateSpriteFromRender(render, key, attributes);
