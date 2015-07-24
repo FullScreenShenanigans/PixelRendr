@@ -21,6 +21,10 @@ declare module PixelRendr {
         [i: string]: Uint8ClampedArray | ISpriteMultiple;
     }
 
+    export interface IGeneralSpriteGenerator {
+        (render: Render, key: string, attributes: ISpriteAttributes): Uint8ClampedArray | ISpriteMultiple;
+    }
+
     export interface IPixelRendrEncodeCallback {
         (result: string, image: HTMLImageElement, source: any): any;
     }
