@@ -135,7 +135,7 @@ declare module PixelRendr {
 /**
  * A typed array of 8-bit unsigned integer values. The contents are initialized 
  * to 0. If the requested number of bytes could not be allocated an exception is
- *  raised.
+ * raised.
  */
 interface Uint8ClampedArray extends ArrayBufferView {
     [index: number]: number;
@@ -152,7 +152,8 @@ interface Uint8ClampedArray extends ArrayBufferView {
 
     /**
       * Gets the element at the specified index.
-      * @param index The index at which to get the element of the array.
+      * 
+      * @param {Number} index The index at which to get the element of the array.
       */
     get(index: number): number;
 
