@@ -10,19 +10,7 @@
 // @include ../Source/PixelRendr.d.ts
 
 /**
- * @todo
- * The first versions of this library were made many years ago by an 
- * inexperienced author, and have undergone only moderate structural revisions
- * since. There are a few key improvements that should happen:
- * 1. Once lazy loading is implemented for significantly shorter startup times,
- *    an extra layer of compression should be added to compress the technically
- *    human-readable String sources to a binary-ish format. See #236.
- * 2. Seperate the processor logic and filter logic. One could be PixelMakr, and
- *    the other PixelRendr.
- * 3. Add logic to combine references from multiple keys to a single output. 
- *    Different keys all result in new sprites being generated, even if they're 
- *    the exact same. A passive routine (to be called during game pauses / etc.)
- *    to combine sprites would be useful. 
+ * 
  */
 module PixelRendr {
     "use strict";
