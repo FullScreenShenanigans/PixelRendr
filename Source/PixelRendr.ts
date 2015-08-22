@@ -1285,7 +1285,11 @@ module PixelRendr {
          *                  any index of the palettte).
          */
         private getDigitSize(palette: any[]): number {
-            return Math.floor(Math.log(palette.length) / Math.LN10) + 1;
+            var digitsize: number = 0;
+            for (var n: number = palette.length; n >= 1; n /= 10) {
+                ++digitsize;
+            }
+            return digitsize;
         }
 
         /**
