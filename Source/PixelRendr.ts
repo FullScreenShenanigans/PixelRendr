@@ -869,7 +869,10 @@ module PixelRendr {
                             // Isolate and split the new palette's numbers
                             paletteref = this.getPaletteReference(colors.slice(loc + 1, nixloc).split(","));
                             loc = nixloc + 1;
-                            digitsize = 1;
+                            digitsize = 0;
+                            for (var n: number = Object.keys(paletteref).length; n >= 1; n /= 10) {
+                                ++digitsize;
+                            }
                         } else {
                             // Otherwise go back to default
                             paletteref = this.getPaletteReference(this.paletteDefault);
