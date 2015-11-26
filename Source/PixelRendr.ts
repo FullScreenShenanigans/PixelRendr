@@ -126,6 +126,42 @@ module PixelRendr {
      * such as real-time video games.
      */
     export class PixelRendr implements IPixelRendr {
+        private static numbersToPixels: { [i: number]: string } = {
+            0: "0",
+            1: "1",
+            2: "2",
+            3: "3",
+            4: "4",
+            5: "5",
+            6: "6",
+            7: "7",
+            8: "8",
+            9: "9",
+            10: "p",
+            11: "[",
+            12: "]",
+            13: "x",
+            14: ","
+        };
+
+        private static pixelsToNumbers: { [i: string]: number } = {
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
+            "6": 6,
+            "7": 7,
+            "8": 8,
+            "9": 9,
+            "p": 10,
+            "[": 11,
+            "]": 12,
+            "x": 13,
+            ",": 14
+        };
+
         /**
          * The base container for storing sprite information.
          */
@@ -251,6 +287,7 @@ module PixelRendr {
             // This is used to load & parse sprites into memory on startup
             this.ProcessorBase = new ChangeLinr.ChangeLinr({
                 "transforms": {
+                    "spriteDecode": this.spriteDecode.bind(this),
                     "spriteUnravel": this.spriteUnravel.bind(this),
                     "spriteApplyFilter": this.spriteApplyFilter.bind(this),
                     "spriteExpand": this.spriteExpand.bind(this),
@@ -283,7 +320,8 @@ module PixelRendr {
                     "imageGetData": this.imageGetData.bind(this),
                     "imageGetPixels": this.imageGetPixels.bind(this),
                     "imageMapPalette": this.imageMapPalette.bind(this),
-                    "imageCombinePixels": this.imageCombinePixels.bind(this)
+                    "imageCombinePixels": this.imageCombinePixels.bind(this),
+                    "imageCombineBinary": this.imageCombineBinary.bind(this)
                 },
                 "pipeline": [
                     "imageGetData",
@@ -823,9 +861,27 @@ module PixelRendr {
         /* Core pipeline functions
         */
 
+        private spriteDecode(colors: string): string {
+            // Legacy case: don't binary-decode sprites that haven't yet been converted
+            if (colors[0] === "p") {
+                return colors;
+            }
+
+            return colors
+                .split("")
+                .map((color: string): string => {
+                    var binary: string = color.charCodeAt(0).toString(2);
+
+                    return (
+                        PixelRendr.numbersToPixels[parseInt(binary.substring(0, 4), 2)]
+                        + PixelRendr.numbersToPixels[parseInt(binary.substring(4), 2)]);
+                })
+                .join("");
+        }
+
         /**
          * Given a compressed raw sprite data string, this 'unravels' it. This is 
-         * the first Function called in the base processor. It could output the
+         * the second Function called in the base processor. It could output the
          * Uint8ClampedArray immediately if given the area - deliberately does not
          * to simplify sprite library storage.
          * 
@@ -889,7 +945,7 @@ module PixelRendr {
 
         /**
          * Repeats each number in the given string a number of times equal to the 
-         * scale. This is the second Function called by the base processor.
+         * scale. This is the third Function called by the base processor.
          * 
          * @param {String} colors
          * @return {String}
@@ -910,12 +966,13 @@ module PixelRendr {
                     output += current;
                 }
             }
+
             return output;
         }
 
         /**
          * Used during post-processing before spriteGetArray to filter colors. This
-         * is the third Function used by the base processor, but it just returns the
+         * is the fourth Function used by the base processor, but it just returns the
          * original sprite if no filter should be applied from attributes.
          * Filters are applied here because the sprite is just the numbers repeated,
          * so it's easy to loop through and replace them.
@@ -965,7 +1022,7 @@ module PixelRendr {
         /**
          * Converts an unraveled String of sprite numbers to the equivalent RGBA
          * Uint8ClampedArray. Each colors number will be represented by four numbers
-         * in the output. This is the fourth Function called in the base processor.
+         * in the output. This is the fifth Function called in the base processor.
          * 
          * @param {String} colors
          * @return {Uint8ClampedArray}
@@ -1269,6 +1326,20 @@ module PixelRendr {
             }
 
             return output;
+        }
+
+        // Combines 8-bit-per-character into 4-bit-per-character
+        private imageCombineBinary(colors: string): string {
+            return colors
+                .match(/.{2}/g)
+                .map((colors: string): string => {
+                    return String.fromCharCode(
+                        parseInt(
+                            PixelRendr.pixelsToNumbers[colors.charCodeAt(0)].toString(2)
+                            + PixelRendr.pixelsToNumbers[colors.charCodeAt(1)].toString(2),
+                            2));
+                })
+                .join("");
         }
 
 
