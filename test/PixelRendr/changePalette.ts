@@ -4,11 +4,16 @@
 /// <reference path="../utils/MochaLoader.ts" />
 /// <reference path="../utils/mocks.ts" />
 
-mochaLoader.addTest("_", (): void => {
+mochaLoader.addTest("clears the cache", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
+    var palette = [
+        [0, 0, 0, 255]
+    ];
 
     // Act
+    PixelRender.changePalette(palette);
 
     // Assert
+    chai.expect(PixelRender.BaseFiler.cache).to.deep.equal({});
 });

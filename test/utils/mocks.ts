@@ -3,9 +3,26 @@
 const mocks = {
     /**
      * @param settings   Settings for the PixelRendr.
-     * @returns An PixelRendr instance.
+     * @returns A PixelRendr instance.
      */
-    mockPixelRendr: (settings?: PixelRendr.IPixelRendrSettings): PixelRendr.IPixelRendr => {
+    mockPixelRendr: (settings: PixelRendr.IPixelRendrSettings = mocks.mockPixelRendrSettings()): PixelRendr.IPixelRendr => {
         return new PixelRendr.PixelRendr(settings);
+    },
+    /**
+     * @returns Settings for a PixelRendr instance.
+     */
+    mockPixelRendrSettings: (): PixelRendr.IPixelRendrSettings => {
+        return {
+            paletteDefault: [
+                [0, 0, 0, 0],
+                [255, 255, 255, 255],
+                [0, 0, 0, 255],
+                [199, 199, 192, 255],
+                [128, 128, 128, 255]
+            ],
+            library: {
+                Box: "x016,"
+            }
+        }
     }
 };
