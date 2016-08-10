@@ -11,7 +11,11 @@ mochaLoader.addTest("returns the correct sprite", (): void => {
         spriteWidth: "16",
         spriteHeight: "16"
     };
-    var boxSprite = new PixelRender.Uint8ClampedArray([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    var zeros = [0, 0, 0, 0];
+    for (var i: number = 0; i < 4; i += 1){
+        zeros = zeros.concat(zeros);
+    }
+    var boxSprite = new PixelRender.Uint8ClampedArray(zeros);
 
     // Act
     var sprite = PixelRender.decode("Box", sizing);

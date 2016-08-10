@@ -11,7 +11,6 @@
         "PixelRendr/resetLibrary.ts",
         "PixelRendr/resetRender.ts",
         "PixelRendr/decode.ts",
-        "PixelRendr/encode.ts",
         "PixelRendr/memcpyU8.ts",
         "PixelRendr/generatePaletteFromRawData.ts"
     ]
