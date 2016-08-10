@@ -8,7 +8,7 @@ mochaLoader.addTest("processes the image into the correct string", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
     var img = document.createElement("img");
-    img.src = "square.png";
+    img.src = "square.gif";
     console.log(img.width + " is the width of img");
 
     // Act
