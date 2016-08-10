@@ -6,8 +6,8 @@
 
 mochaLoader.addTest("replaces the palette", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let palette = [
+    const PixelRender = mocks.mockPixelRendr();
+    const palette = [
         [0, 0, 0, 255]
     ];
 
@@ -18,10 +18,10 @@ mochaLoader.addTest("replaces the palette", (): void => {
     chai.expect(PixelRender.paletteDefault).to.deep.equal(palette);
 });
 
-mochaLoader.addTest("adjusts digitsizeDefault", (): void => {
+mochaLoader.addTest("recalculates digitsizeDefault", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let palette = [
+    const PixelRender = mocks.mockPixelRendr();
+    const palette = [
         [0, 0, 0, 255]
     ];
 

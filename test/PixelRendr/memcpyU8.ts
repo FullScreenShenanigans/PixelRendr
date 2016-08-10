@@ -6,9 +6,9 @@
 
 mochaLoader.addTest("copies members of an array of equal length", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let receiver = [0, 0, 0];
-    let donor = [2, 3, 5];
+    const PixelRender = mocks.mockPixelRendr();
+    const receiver = [0, 0, 0];
+    const donor = [2, 3, 5];
 
     // Act
     PixelRender.memcpyU8(donor, receiver);
@@ -19,9 +19,9 @@ mochaLoader.addTest("copies members of an array of equal length", (): void => {
 
 mochaLoader.addTest("does not copy to an array of length 0", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let receiver = [];
-    let donor = [2, 3, 5];
+    const PixelRender = mocks.mockPixelRendr();
+    const receiver = [];
+    const donor = [2, 3, 5];
 
     // Act
     PixelRender.memcpyU8(donor, receiver);
@@ -32,11 +32,11 @@ mochaLoader.addTest("does not copy to an array of length 0", (): void => {
 
 mochaLoader.addTest("does not change receiver if donor has length 0", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
+    const PixelRender = mocks.mockPixelRendr();
 
     // Act
-    let receiver = [0, 0, 0];
-    let donor = [];
+    const receiver = [0, 0, 0];
+    const donor = [];
 
     // Assert
     chai.expect(receiver).to.deep.equal([0, 0, 0]);
@@ -44,9 +44,9 @@ mochaLoader.addTest("does not change receiver if donor has length 0", (): void =
 
 mochaLoader.addTest("copies all of the donor's elements if its length is less than the receiver's", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let receiver = [0, 0, 0];
-    let donor = [2, 3];
+    const PixelRender = mocks.mockPixelRendr();
+    const receiver = [0, 0, 0];
+    const donor = [2, 3];
 
     // Act
     PixelRender.memcpyU8(donor, receiver);
@@ -57,9 +57,9 @@ mochaLoader.addTest("copies all of the donor's elements if its length is less th
 
 mochaLoader.addTest("changes all of the receiver's elements if its length is less than the donor's", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let receiver = [0, 0];
-    let donor = [2, 3, 5];
+    const PixelRender = mocks.mockPixelRendr();
+    const receiver = [0, 0];
+    const donor = [2, 3, 5];
 
     // Act
     PixelRender.memcpyU8(donor, receiver);

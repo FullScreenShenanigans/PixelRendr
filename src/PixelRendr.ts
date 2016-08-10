@@ -260,9 +260,7 @@ export class PixelRendr implements IPixelRendr {
             throw new Error(`No render found for '${key}'.`);
         }
 
-        const render: IRender = result as IRender;
-
-        render.sprites = {};
+        (result as IRender).sprites = {};
     }
 
     /**
@@ -273,7 +271,7 @@ export class PixelRendr implements IPixelRendr {
     public changePalette(palette: IPalette): void {
         this.setPalette(palette);
 
-        for (let sprite in this.library.sprites) {
+        for (const sprite in this.library.sprites) {
             if (!this.library.sprites.hasOwnProperty(sprite)) {
                 continue;
             }
@@ -1036,8 +1034,6 @@ export class PixelRendr implements IPixelRendr {
 
         canvas.width = image.width;
         canvas.height = image.height;
-        console.log("weight is " + image.width);
-        console.log("height is " + image.height);
 
         context.drawImage(image, 0, 0);
         return context.getImageData(0, 0, image.width, image.height).data;

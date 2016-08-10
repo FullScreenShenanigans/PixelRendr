@@ -4,21 +4,21 @@
 /// <reference path="../utils/MochaLoader.ts" />
 /// <reference path="../utils/mocks.ts" />
 
-mochaLoader.addTest("throws an error if the sprite does not exist", (): void => {
+mochaLoader.addTest("throws an error if the render does not exist", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
+    const PixelRender = mocks.mockPixelRendr();
 
     // Assert
     chai.expect(PixelRender.resetRender.bind(PixelRender, "X")).to.throw("No render found for 'X'.");
 });
 
-mochaLoader.addTest("resets sprites for the render", (): void => {
+mochaLoader.addTest("resets existing sprites for the render", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
+    const PixelRender = mocks.mockPixelRendr();
 
     // Act
-    PixelRender.resetRender("Box");
+    PixelRender.resetRender(mocks.mockSpriteName);
 
     // Assert
-    chai.expect(PixelRender.BaseFiler.get("Box").sprites).to.deep.equal({})
+    chai.expect(PixelRender.BaseFiler.get(mocks.mockSpriteName).sprites).to.deep.equal({})
 });

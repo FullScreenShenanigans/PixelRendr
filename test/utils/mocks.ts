@@ -21,7 +21,7 @@ const mocks = {
                 [128, 128, 128, 255]
             ],
             library: {
-                Box: "x016,"
+                [mocks.mockSpriteName]: "x016,"
             }
         }
     },

@@ -6,7 +6,7 @@
 
 mochaLoader.addTest("resets the library to a blank library", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
+    const PixelRender = mocks.mockPixelRendr();
 
     // Act
     PixelRender.resetLibrary();
@@ -20,8 +20,8 @@ mochaLoader.addTest("resets the library to a blank library", (): void => {
 
 mochaLoader.addTest("sets the raw of the library", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let library = {
+    const PixelRender = mocks.mockPixelRendr();
+    const library = {
         Box: "x14"
     };
 

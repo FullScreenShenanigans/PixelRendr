@@ -6,8 +6,8 @@
 
 mochaLoader.addTest("returns the correct sprite", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
-    let sizing = {
+    const PixelRender = mocks.mockPixelRendr();
+    const sizing = {
         spriteWidth: "16",
         spriteHeight: "16"
     };
@@ -15,10 +15,10 @@ mochaLoader.addTest("returns the correct sprite", (): void => {
     for (let i: number = 0; i < 4; i += 1){
         zeros = zeros.concat(zeros);
     }
-    let boxSprite = new PixelRender.Uint8ClampedArray(zeros);
+    const boxSprite = new PixelRender.Uint8ClampedArray(zeros);
 
     // Act
-    let sprite = PixelRender.decode("Box", sizing);
+    const sprite = PixelRender.decode(mocks.mockSpriteName, sizing);
 
     // Assert
     chai.expect(sprite).to.deep.equal(boxSprite);
@@ -26,7 +26,7 @@ mochaLoader.addTest("returns the correct sprite", (): void => {
 
 mochaLoader.addTest("throws an error if the sprite does not exist", (): void => {
     // Arrange
-    let PixelRender = mocks.mockPixelRendr();
+    const PixelRender = mocks.mockPixelRendr();
 
     // Assert
     chai.expect(PixelRender.decode.bind(PixelRender, "X")).to.throw("No sprite found for 'X'.");

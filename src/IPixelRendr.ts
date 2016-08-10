@@ -355,7 +355,7 @@ export interface IPixelRendr {
     getSpriteBase(key: string): Uint8ClampedArray | ISpriteMultiple;
 
     /**
-     * Replaces th ecurrent palette with a new one.
+     * Replaces the current palette with a new one.
      * 
      * @param palette   The new palette to replace the current one.
      */
