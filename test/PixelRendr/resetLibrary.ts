@@ -22,7 +22,7 @@ mochaLoader.addTest("sets the raw of the library", (): void => {
     // Arrange
     const PixelRender = mocks.mockPixelRendr();
     const library = {
-        Box: "x14"
+        [mocks.mockSpriteName]: "x14"
     };
 
     // Act
