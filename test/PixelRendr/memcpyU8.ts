@@ -30,7 +30,7 @@ mochaLoader.addTest("does not copy to an array of length 0", (): void => {
     chai.expect(receiver).to.deep.equal([]);
 });
 
-mochaLoader.addTest("does not change receiver if donor is length 0", (): void => {
+mochaLoader.addTest("does not change receiver if donor has length 0", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
 
@@ -42,7 +42,7 @@ mochaLoader.addTest("does not change receiver if donor is length 0", (): void =>
     chai.expect(receiver).to.deep.equal([0, 0, 0]);
 });
 
-mochaLoader.addTest("copies all of the donor's elements", (): void => {
+mochaLoader.addTest("copies all of the donor's elements if its length is less than the receiver's", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
     var receiver = [0, 0, 0];
@@ -55,7 +55,7 @@ mochaLoader.addTest("copies all of the donor's elements", (): void => {
     chai.expect(receiver).to.deep.equal([2, 3, 0]);
 });
 
-mochaLoader.addTest("changes all of the receiver's elements", (): void => {
+mochaLoader.addTest("changes all of the receiver's elements if its length is less than the donor's", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
     var receiver = [0, 0];

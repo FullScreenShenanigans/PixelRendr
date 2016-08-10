@@ -24,5 +24,9 @@ const mocks = {
                 Box: "x016,"
             }
         }
-    }
+    },
+    /**
+     * @returns The name of the default sprite name in the library.
+     */
+    mockSpriteName: "Box"
 };

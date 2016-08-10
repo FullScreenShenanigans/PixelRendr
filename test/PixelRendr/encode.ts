@@ -4,7 +4,7 @@
 /// <reference path="../utils/MochaLoader.ts" />
 /// <reference path="../utils/mocks.ts" />
 
-mochaLoader.addTest("processes the image into a string", (): void => {
+mochaLoader.addTest("processes the image into the correct string", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
     var img = document.createElement("img");
@@ -15,10 +15,10 @@ mochaLoader.addTest("processes the image into a string", (): void => {
     var sprite = PixelRender.encode(img);
 
     // Assert
-    chai.expect(sprite).to.equal("x16");
+    chai.expect(sprite).to.equal("x16,");
 });
 
-mochaLoader.addTest("calls the callback", (): void => {
+mochaLoader.addTest("calls the callback passed to encode once", (): void => {
     // Arrange
     var PixelRender = mocks.mockPixelRendr();
     var img = document.createElement("img");

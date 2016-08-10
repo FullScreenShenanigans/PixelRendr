@@ -254,11 +254,13 @@ export class PixelRendr implements IPixelRendr {
      * @param key   The key of the sprite to render.
      */
     public resetRender(key: string): void {
-        const render: IRender = this.BaseFiler.get(key);
+        const result: IRender | IRenderLibrary = this.BaseFiler.get(key);
 
-        if (!render || !render.sprites) {
+        if (result === this.library.sprites) {
             throw new Error(`No render found for '${key}'.`);
         }
+
+        const render: IRender = result as IRender;
 
         render.sprites = {};
     }
