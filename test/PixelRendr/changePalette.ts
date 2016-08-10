@@ -6,8 +6,8 @@
 
 mochaLoader.addTest("resets the empty cache", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
-    var palette = [
+    let PixelRender = mocks.mockPixelRendr();
+    let palette = [
         [0, 0, 0, 255]
     ];
 
@@ -20,8 +20,8 @@ mochaLoader.addTest("resets the empty cache", (): void => {
 
 mochaLoader.addTest("clears the cache with items in it", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
-    var palette = [
+    let PixelRender = mocks.mockPixelRendr();
+    let palette = [
         [0, 0, 0, 255]
     ];
 

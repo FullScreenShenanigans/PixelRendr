@@ -6,7 +6,7 @@
 
 mochaLoader.addTest("throws an error if the sprite does not exist", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
+    let PixelRender = mocks.mockPixelRendr();
 
     // Assert
     chai.expect(PixelRender.resetRender.bind(PixelRender, "X")).to.throw("No render found for 'X'.");
@@ -14,7 +14,7 @@ mochaLoader.addTest("throws an error if the sprite does not exist", (): void => 
 
 mochaLoader.addTest("resets sprites for the render", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
+    let PixelRender = mocks.mockPixelRendr();
 
     // Act
     PixelRender.resetRender("Box");

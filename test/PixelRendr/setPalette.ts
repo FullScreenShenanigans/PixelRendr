@@ -6,8 +6,8 @@
 
 mochaLoader.addTest("replaces the palette", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
-    var palette = [
+    let PixelRender = mocks.mockPixelRendr();
+    let palette = [
         [0, 0, 0, 255]
     ];
 
@@ -20,8 +20,8 @@ mochaLoader.addTest("replaces the palette", (): void => {
 
 mochaLoader.addTest("adjusts digitsizeDefault", (): void => {
     // Arrange
-    var PixelRender = mocks.mockPixelRendr();
-    var palette = [
+    let PixelRender = mocks.mockPixelRendr();
+    let palette = [
         [0, 0, 0, 255]
     ];
 
