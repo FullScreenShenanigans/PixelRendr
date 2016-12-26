@@ -718,14 +718,14 @@ export class PixelRendr implements IPixelRendr {
         let digitsize: number = this.digitsizeDefault;
         let location: number = 0;
         let output: string = "";
-        let commaLocation;
+        let commaLocation: number;
 
         while (location < colors.length) {
             switch (colors[location]) {
                 // A loop, ordered as 'x char times ,'
                 case "x":
                     // Get the location of the ending comma
-                    commaLocation: number = colors.indexOf(",", ++location);
+                    commaLocation = colors.indexOf(",", ++location);
                     if (commaLocation === -1) {
                         throw new Error(`Unclosed repeat loop at ${location}`);
                     }
@@ -744,7 +744,7 @@ export class PixelRendr implements IPixelRendr {
                 case "p":
                     // If the next character is a "[", customize.
                     if (colors[++location] === "[") {
-                        commaLocation: number = colors.indexOf("]");
+                        commaLocation = colors.indexOf("]");
                         if (commaLocation === -1) {
                             throw new Error(`Unclosed palette brackets at ${location}`);
                         }
