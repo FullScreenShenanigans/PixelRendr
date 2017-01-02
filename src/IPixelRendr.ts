@@ -12,18 +12,25 @@ export type IPixel = [number, number, number, number];
 export type IPalette = IPixel[];
 
 /**
+ * Raw sprite data for a library.
+ */
+export interface ILibraryRaws {
+    [i: string]: ILibraryRaws | string | any[];
+}
+
+/**
  * A base container for storing raw sprites and their renders.
  */
 export interface ILibrary {
     /**
      * The original sources for the sprites.
      */
-    raws: any;
+    readonly raws: ILibraryRaws;
 
     /**
      * Rendered sprites from the raw sources.
      */
-    sprites?: IRenderLibrary;
+    readonly sprites: IRenderLibrary;
 }
 
 /**
@@ -366,25 +373,6 @@ export interface IPixelRendr {
      * @returns A sprite for the given key and attributes.
      */
     decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
-
-    /**
-     * Miscellaneous utility to generate a complete palette from raw image pixel
-     * data. Unique [r,g,b,a] values are found using tree-based caching, and
-     * separated into grayscale (r,g,b equal) and general (r,g,b unequal). If a
-     * pixel has a=0, it's completely transparent and goes before anything else
-     * in the palette. Grayscale colors come next in order of light to dark, and
-     * general colors come next sorted by decreasing r, g, and b in order.
-     * 
-     * @param data   The equivalent data from a context's getImageData(...).data.
-     * @param forceZeroColor   Whether the palette should have a [0,0,0,0] color 
-     *                         as the first element even if data does not contain 
-     *                         it (by default, false).
-     * @param giveArrays   Whether the resulting palettes should be converted to 
-     *                     Arrays (by default, false).
-     * @returns A working palette that may be used in sprite settings (Array[] if
-     *          giveArrays is true).
-     */
-    generatePaletteFromRawData(data: Uint8ClampedArray, forceZeroColor?: boolean, giveArrays?: boolean): Uint8ClampedArray[];
 
     /**
      * Copies a stretch of members from one Uint8ClampedArray or number[] to

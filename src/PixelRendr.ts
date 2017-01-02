@@ -5,10 +5,11 @@ import { StringFilr } from "stringfilr/lib/StringFilr";
 
 import {
     IClampedArraysContainer, IFilter, IFilterAttributes, IFilterContainer,
-    IGeneralSpriteGenerator, ILibrary, IPalette, IPixelRendr,
-    IPixelRendrSettings, IRender,
-    IRenderContainerListing, IRenderLibrary, ISpriteAttributes, ISpriteMultiple
+    IGeneralSpriteGenerator, ILibrary, ILibraryRaws, IPalette, IPixelRendr,
+    IPixelRendrSettings, IRender, IRenderContainerListing, IRenderLibrary,
+    ISpriteAttributes, ISpriteMultiple
 } from "./IPixelRendr";
+import { Library } from "./Library";
 import { Render } from "./Render";
 import { SpriteMultiple } from "./SpriteMultiple";
 
@@ -19,7 +20,7 @@ export class PixelRendr implements IPixelRendr {
     /**
      * The base container for storing sprite information.
      */
-    private library: ILibrary;
+    private library: Library;
 
     /**
      * A StringFilr interface on top of the base library.
@@ -212,12 +213,8 @@ export class PixelRendr implements IPixelRendr {
      * 
      * @param library   A new nested library of sprites.
      */
-    public resetLibrary(library: any = {}): void {
-        this.library = {
-            "raws": library || {}
-        };
-
-        this.library.sprites = this.libraryParse(this.library.raws);
+    public resetLibrary(raws: ILibraryRaws = {}): void {
+        this.library = new Library(raws);
 
         // The BaseFiler provides a searchable 'view' on the library of sprites
         this.baseFiler = new StringFilr({
@@ -250,9 +247,6 @@ export class PixelRendr implements IPixelRendr {
         this.setPalette(palette);
 
         for (const sprite in this.library.sprites!) {
-            if (!this.library.sprites!.hasOwnProperty(sprite)) {
-                continue;
-            }
             this.baseFiler.clearCached(sprite);
         }
     }
@@ -274,7 +268,7 @@ export class PixelRendr implements IPixelRendr {
         }
 
         // If the render doesn't have a listing for this key, create one
-        if (!result.sprites.hasOwnProperty(key)) {
+        if (!(key in result.sprites)) {
             this.generateRenderSprite(result, key, attributes);
         }
 
@@ -285,104 +279,6 @@ export class PixelRendr implements IPixelRendr {
         }
 
         return sprite;
-    }
-
-    /**
-     * Miscellaneous utility to generate a complete palette from raw image pixel
-     * data. Unique [r,g,b,a] values are found using tree-based caching, and
-     * separated into grayscale (r,g,b equal) and general (r,g,b unequal). If a
-     * pixel has a=0, it's completely transparent and goes before anything else
-     * in the palette. Grayscale colors come next in order of light to dark, and
-     * general colors come next sorted by decreasing r, g, and b in order.
-     * 
-     * @param data   The equivalent data from a context's getImageData(...).data.
-     * @param forceZeroColor   Whether the palette should have a [0,0,0,0] color 
-     *                         as the first element even if data does not contain 
-     *                         it (by default, false).
-     * @param giveArrays   Whether the resulting palettes should be converted to 
-     *                     Arrays (by default, false).
-     * @returns A working palette that may be used in sprite settings (Array[] if
-     *          giveArrays is true).
-     */
-    public generatePaletteFromRawData(data: Uint8ClampedArray, forceZeroColor?: boolean, giveArrays?: boolean): Uint8ClampedArray[] {
-        const tree: any = {};
-        const colorsGeneral: Uint8ClampedArray[] = [];
-        const colorsGrayscale: Uint8ClampedArray[] = [];
-
-        for (let i: number = 0; i < data.length; i += 4) {
-            if (data[i + 3] === 0) {
-                forceZeroColor = true;
-                continue;
-            }
-
-            if (
-                tree[data[i]]
-                && tree[data[i]][data[i + 1]]
-                && tree[data[i]][data[i + 1]][data[i + 2]]
-                && tree[data[i]][data[i + 1]][data[i + 2]][data[i + 3]]) {
-                continue;
-            }
-
-            if (!tree[data[i]]) {
-                tree[data[i]] = {};
-            }
-
-            if (!tree[data[i]][data[i + 1]]) {
-                tree[data[i]][data[i + 1]] = {};
-            }
-
-            if (!tree[data[i]][data[i + 1]][data[i + 2]]) {
-                tree[data[i]][data[i + 1]][data[i + 2]] = {};
-            }
-
-            if (!tree[data[i]][data[i + 1]][data[i + 2]][data[i + 3]]) {
-                tree[data[i]][data[i + 1]][data[i + 2]][data[i + 3]] = true;
-
-                if (data[i] === data[i + 1] && data[i + 1] === data[i + 2]) {
-                    colorsGrayscale.push(data.subarray(i, i + 4));
-                } else {
-                    colorsGeneral.push(data.subarray(i, i + 4));
-                }
-            }
-        }
-
-        // It's safe to sort grayscale colors just on their first values, since
-        // grayscale implies they're all the same.
-        colorsGrayscale.sort(function (a: Uint8ClampedArray, b: Uint8ClampedArray): number {
-            return a[0] - b[0];
-        });
-
-        // For regular colors, sort by the first color that's not equal, so in 
-        // order red, green, blue, alpha.
-        colorsGeneral.sort(function (a: Uint8ClampedArray, b: Uint8ClampedArray): number {
-            for (let i: number = 0; i < 4; i += 1) {
-                if (a[i] !== b[i]) {
-                    return b[i] - a[i];
-                }
-            }
-
-            return 0;
-        });
-
-        let output: Uint8ClampedArray[];
-
-        if (forceZeroColor) {
-            output = [new this.Uint8ClampedArray([0, 0, 0, 0])]
-                .concat(colorsGrayscale)
-                .concat(colorsGeneral);
-        } else {
-            output = colorsGrayscale.concat(colorsGeneral);
-        }
-
-        if (!giveArrays) {
-            return output;
-        }
-
-        for (let i: number = 0; i < output.length; i += 1) {
-            output[i] = Array.prototype.slice.call(output[i]);
-        }
-
-        return output;
     }
 
     /**
@@ -418,20 +314,16 @@ export class PixelRendr implements IPixelRendr {
      * Recursively travels through a library, turning all raw sprites and 
      * commands into Renders.
      * 
-     * @param reference   The raw source structure to be parsed.
+     * @param raws   The raw source structure to be parsed.
      * @param path   The path to the current place within the library.
      * @returns The parsed library Object.
      */
-    private libraryParse(reference: any): IRenderLibrary {
+    private libraryParse(raws: ILibraryRaws): IRenderLibrary {
         const setNew: IRenderLibrary = {};
 
         // For each child of the current layer:
-        for (let i in reference) {
-            if (!reference.hasOwnProperty(i)) {
-                continue;
-            }
-
-            const source: any = reference[i];
+        for (const i in raws) {
+            const source: any = raws[i];
 
             switch (source.constructor) {
                 case String:
@@ -517,11 +409,9 @@ export class PixelRendr implements IPixelRendr {
         const output: ISpriteMultiple = new SpriteMultiple(sprites, render);
 
         for (const i in sources) {
-            if (sources.hasOwnProperty(i)) {
-                const path: string = key + " " + i;
-                const sprite: any = this.processorBase.process(sources[i], path, render.filter);
-                sprites[i] = this.processorDims.process(sprite, path, attributes);
-            }
+            const path: string = key + " " + i;
+            const sprite: any = this.processorBase.process(sources[i], path, render.filter);
+            sprites[i] = this.processorDims.process(sprite, path, attributes);
         }
 
         return output;
@@ -596,7 +486,7 @@ export class PixelRendr implements IPixelRendr {
 
     /**
      * Recursively generates a directory of Renders from a filter. This is
-     * similar to this.libraryParse, though the filter is added and references
+     * similar to Library::parse, though the filter is added and references
      * aren't.
      * 
      * @param directory   The current directory of Renders to create filtered versions 
@@ -608,18 +498,10 @@ export class PixelRendr implements IPixelRendr {
         const output: IRenderLibrary = {};
 
         for (const i in directory) {
-            if (!directory.hasOwnProperty(i)) {
-                continue;
-            }
-
             const child: Render | IRenderLibrary = directory[i] as Render | IRenderLibrary;
 
             if (child instanceof Render) {
-                output[i] = new Render(
-                    (child as IRender).source,
-                    {
-                        "filter": filter
-                    });
+                output[i] = new Render((child as IRender).source, { filter });
             } else {
                 output[i] = this.generateRendersFromFilter(child, filter);
             }
@@ -770,9 +652,7 @@ export class PixelRendr implements IPixelRendr {
 
                 // For each color filter to be applied, replace it
                 for (const i in filter[1]) {
-                    if (filter[1].hasOwnProperty(i)) {
-                        this.arrayReplace(split, i, filter[1][i]);
-                    }
+                    this.arrayReplace(split, i, filter[1][i]);
                 }
 
                 return split.join("");
@@ -1100,7 +980,7 @@ export class PixelRendr implements IPixelRendr {
      * @returns A found element within object.
      */
     private followPath(object: any, path: string[], index: number): any {
-        if (index < path.length && object.hasOwnProperty(path[index])) {
+        if (index < path.length && path[index] in object) {
             return this.followPath(object[path[index]], path, index + 1);
         }
 

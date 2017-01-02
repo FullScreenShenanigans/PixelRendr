@@ -9,10 +9,8 @@ mochaLoader.it("resets the library to a blank library", (): void => {
     PixelRender.resetLibrary();
 
     // Assert
-    chai.expect(PixelRender.getLibrary()).to.deep.equal({
-        raws: {},
-        sprites: {}
-    });
+    chai.expect(PixelRender.getLibrary().raws).to.deep.equal({});
+    chai.expect(PixelRender.getLibrary().sprites).to.deep.equal({});
 });
 
 mochaLoader.it("sets the raw of the library", (): void => {
