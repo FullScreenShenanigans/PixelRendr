@@ -6,7 +6,7 @@ import { StringFilr } from "stringfilr/lib/StringFilr";
 import {
     IClampedArraysContainer, IFilter, IFilterAttributes, IFilterContainer,
     IGeneralSpriteGenerator, ILibrary, IPalette, IPixelRendr,
-    IPixelRendrEncodeCallback, IPixelRendrSettings, IRender,
+    IPixelRendrSettings, IRender,
     IRenderContainerListing, IRenderLibrary, ISpriteAttributes, ISpriteMultiple
 } from "./IPixelRendr";
 import { Render } from "./Render";
@@ -37,12 +37,6 @@ export class PixelRendr implements IPixelRendr {
      * flipping, used during on-demand retrievals.
      */
     private processorDims: IChangeLinr;
-
-    /**
-     * Reverse of processorBase: takes real images and compresses their data
-     * into sprites.
-     */
-    private processorEncode: IChangeLinr;
 
     /**
      * The default colors used for palettes in sprites.
@@ -143,18 +137,6 @@ export class PixelRendr implements IPixelRendr {
             pipeline: ["spriteRepeatRows", "spriteFlipDimensions"]
         });
 
-        // As a utility, a processor is included to encode image data to sprites
-        this.processorEncode = new ChangeLinr({
-            transforms: {
-                imageGetData: this.imageGetData.bind(this),
-                imageGetPixels: this.imageGetPixels.bind(this),
-                imageMapPalette: this.imageMapPalette.bind(this),
-                imageCombinePixels: this.imageCombinePixels.bind(this)
-            },
-            pipeline: ["imageGetData", "imageGetPixels", "imageMapPalette", "imageCombinePixels"],
-            doUseCache: false
-        });
-
         this.commandGenerators = {
             multiple: this.generateSpriteCommandMultipleFromRender.bind(this),
             same: this.generateSpriteCommandSameFromRender.bind(this),
@@ -211,14 +193,6 @@ export class PixelRendr implements IPixelRendr {
      */
     public getProcessorDims(): IChangeLinr {
         return this.processorDims;
-    }
-
-    /**
-     * @returns The processor that takes real images and compresses their data 
-     *          into sprite Strings.
-     */
-    public getProcessorEncode(): IChangeLinr {
-        return this.processorEncode;
     }
 
     /**
@@ -311,38 +285,6 @@ export class PixelRendr implements IPixelRendr {
         }
 
         return sprite;
-    }
-
-    /**
-     * Encodes an image into a sprite via ProcessorEncode.process.
-     * 
-     * @param image   An image to encode.
-     * @param callback   An optional callback to call with image and the result.
-     * @param args   Any additional arguments to pass to the callback.
-     * @returns The resultant sprite.
-     */
-    public encode(image: HTMLImageElement, callback?: IPixelRendrEncodeCallback, ...args: any[]): string {
-        const result: string = this.processorEncode.process(image);
-
-        if (callback) {
-            callback(result, image, ...args);
-        }
-
-        return result;
-    }
-
-    /**
-     * Fetches an image from a source and encodes it into a sprite via 
-     * ProcessEncode.process. An HtmlImageElement is created and given an onload
-     * of this.encode.
-     * 
-     * @param uri   The URI of an image to encode.
-     * @param callback   A callback to call on the results.
-     */
-    public encodeUri(uri: string, callback: IPixelRendrEncodeCallback): void {
-        const image: HTMLImageElement = document.createElement("img");
-        image.onload = this.encode.bind(this, image, callback);
-        image.src = uri;
     }
 
     /**
@@ -1028,120 +970,6 @@ export class PixelRendr implements IPixelRendr {
     }
 
     /**
-     * Retrives the raw pixel data from an image element. It is copied onto a 
-     * canvas, which as its context return the .getImageDate().data results.
-     * This is the first Fiunction used in the encoding processor.
-     * 
-     * @param image   An image whose data is to be retrieved.
-     */
-    private imageGetData(image: HTMLImageElement): Uint8ClampedArray {
-        const canvas: HTMLCanvasElement = document.createElement("canvas");
-        const context: CanvasRenderingContext2D = canvas.getContext("2d")!;
-
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        context.drawImage(image, 0, 0);
-        return context.getImageData(0, 0, image.width, image.height).data;
-    }
-
-    /**
-     * Determines which pixels occur in the data and at what frequency. This is
-     * the second Function used in the encoding processor.
-     * 
-     * @param data   The raw pixel data obtained from the imageData of a canvas.
-     * @returns [pixels, occurences], where pixels is an array of [rgba] values 
-     *          and occurences is an Object mapping occurence frequencies of 
-     *          palette colors in pisels.
-     */
-    private imageGetPixels(data: Uint8ClampedArray): [number[], any] {
-        const pixels: number[] = new Array(data.length / 4);
-        const occurences: any = {};
-
-        let i: number = 0;
-        let j: number = 0;
-
-        while (i < data.length) {
-            const pixel: number = this.getClosestInPalette(this.paletteDefault, data.subarray(i, i + 4));
-            pixels[j] = pixel;
-
-            if (occurences.hasOwnProperty(pixel)) {
-                occurences[pixel] += 1;
-            } else {
-                occurences[pixel] = 1;
-            }
-
-            i += 4;
-            j += 1;
-        }
-
-        return [pixels, occurences];
-    }
-
-    /**
-     * Concretely defines the palette to be used for a new sprite. This is the
-     * third Function used in the encoding processor, and creates a technically
-     * usable (but uncompressed) sprite with information to compress it.
-     * 
-     * @param information   [pixels, occurences], a result directly from imageGetPixels.    
-     * @returns [palette, numbers, digitsize], where palette is a String[] of palette 
-     *          numbers, numbers is the actual sprite data, and digitsize is the sprite's
-     *          digit size.
-     */
-    private imageMapPalette(information: [number[], any]): [string[], number[], number] {
-        const pixels: number[] = information[0];
-        const occurences: any = information[1];
-        const palette: string[] = Object.keys(occurences);
-        const digitsize: number = this.getDigitSizeFromArray(palette);
-        const paletteIndices: any = this.getValueIndices(palette);
-        const numbers: number[] = pixels.map(
-            (pixel: number): number => paletteIndices[pixel]);
-
-        return [palette, numbers, digitsize];
-    }
-
-    /**
-     * Compresses a nearly complete sprite from imageMapPalette into a 
-     * compressed, storage-ready String. This is the last Function in the 
-     * encoding processor.
-     * 
-     * @param information   [palette, numbers, digitsize], a result directly from 
-     *                      imageMapPalette.
-     * @returns The pixels from information, combined.
-     */
-    private imageCombinePixels(information: [string[], number[], number]): string {
-        const palette: string[] = information[0];
-        const numbers: number[] = information[1];
-        const digitsize: number = information[2];
-        const threshold: number = Math.max(3, Math.round(4 / digitsize));
-        let output: string = "p[" + palette.map(this.makeSizedDigit.bind(this, digitsize)).join(",") + "]";
-        let i: number = 0;
-
-        while (i < numbers.length) {
-            let j: number = i + 1;
-            let current: number = numbers[i];
-            const digit: string = this.makeDigit(current, digitsize);
-
-            while (current === numbers[j]) {
-                j += 1;
-            }
-
-            if (j - i > threshold) {
-                output += "x" + digit + String(j - i) + ",";
-                i = j;
-            } else {
-                do {
-                    output += digit;
-                    i += 1;
-                }
-                while (i < j);
-            }
-        }
-
-        return output;
-    }
-
-    /**
      * Sets the palette and digitsize Default/digitsplit based off that palette.
      * 
      * @param palette   The palette being assigned to paletteDefault.
@@ -1219,32 +1047,6 @@ export class PixelRendr implements IPixelRendr {
     }
 
     /**
-     * Finds which rgba value in a palette is closest to a given value. This is
-     * useful for determining which color in a pre-existing palette matches up
-     * with a raw image's pixel. This is determined by which palette color has
-     * the lowest total difference in integer values between r, g, b, and a.
-     * 
-     * @param palette   The palette of pre-existing colors.
-     * @param rgba   The RGBA values being assigned, as Numbers in [0, 255].    
-     * @returns The closest matching color index.
-     */
-    private getClosestInPalette(palette: IPalette, rgba: number[] | Uint8ClampedArray): number {
-        let bestDifference: number = Infinity;
-        let bestIndex: number = 0;
-        let difference: number;
-
-        for (let i: number = palette.length - 1; i >= 0; i -= 1) {
-            difference = this.arrayDifference(palette[i], rgba);
-            if (difference < bestDifference) {
-                bestDifference = difference;
-                bestIndex = i;
-            }
-        }
-
-        return bestIndex;
-    }
-
-    /**
      * Creates a new String equivalent to an old String repeated any number of
      * times. If times is 0, a blank String is returned.
      * 
@@ -1272,18 +1074,6 @@ export class PixelRendr implements IPixelRendr {
     }
 
     /**
-     * Curry wrapper around makeDigit that reverses size and number argument 
-     * order. Useful for binding makeDigit.
-     * 
-     * @param number   The original Number being padded.
-     * @param size   How many digits the output must contain.
-     * @returns A stringified digit of the given length.
-     */
-    private makeSizedDigit(size: number, digit: number): string {
-        return this.makeDigit(digit, size, "0");
-    }
-
-    /**
      * Replaces all instances of an element in an Array.
      * 
      * @param array   The original elements.
@@ -1299,40 +1089,6 @@ export class PixelRendr implements IPixelRendr {
         }
 
         return array;
-    }
-
-    /**
-     * Computes the sum of the differences of elements between two Arrays of
-     * equal length.
-     * 
-     * @param a   An Array of Numbers.
-     * @param b   An Array of Numbers.
-     * @returns The sum of differences between a and b.
-     */
-    private arrayDifference(a: number[] | Uint8ClampedArray, b: number[] | Uint8ClampedArray): number {
-        let sum: number = 0;
-
-        for (let i: number = a.length - 1; i >= 0; i -= 1) {
-            sum += Math.abs(a[i] - b[i]) | 0;
-        }
-
-        return sum;
-    }
-
-    /**
-     * Converts an Array to an Object mapping values to indices.
-     * 
-     * @param array   An Array to convert.
-     * @returns An Object with an index equal to each element of the Array.
-     */
-    private getValueIndices(array: any[]): any {
-        const output: any = {};
-
-        for (let i: number = 0; i < array.length; i += 1) {
-            output[array[i]] = i;
-        }
-
-        return output;
     }
 
     /**

@@ -230,10 +230,6 @@ export interface IGeneralSpriteGenerator {
     (render: IRender, key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
 }
 
-export interface IPixelRendrEncodeCallback {
-    (result: string, image: HTMLImageElement, ...args: any[]): any;
-}
-
 /**
  * Settings to initialize a new IPixelRendr.
  */
@@ -329,12 +325,6 @@ export interface IPixelRendr {
     getProcessorDims(): IChangeLinr;
 
     /**
-     * @returns The processor that takes real images and compresses their data 
-     *          into sprite Strings.
-     */
-    getProcessorEncode(): IChangeLinr;
-
-    /**
      * Resets the nested library of sprite sources.
      * 
      * @param library   A new nested library of sprites.
@@ -376,26 +366,6 @@ export interface IPixelRendr {
      * @returns A sprite for the given key and attributes.
      */
     decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
-
-    /**
-     * Encodes an image into a sprite via ProcessorEncode.process.
-     * 
-     * @param image   An image to encode.
-     * @param callback   An optional callback to call with image and the result.
-     * @param args   Any additional arguments to pass to the callback.
-     * @returns The resultant sprite.
-     */
-    encode(image: HTMLImageElement, callback?: IPixelRendrEncodeCallback, ...args: any[]): string;
-
-    /**
-     * Fetches an image from a source and encodes it into a sprite via 
-     * ProcessEncode.process. An HtmlImageElement is created and given an onload
-     * of this.encode.
-     * 
-     * @param uri   The URI of an image to encode.
-     * @param callback   A callback to call on the results.
-     */
-    encodeUri(uri: string, callback: IPixelRendrEncodeCallback): void;
 
     /**
      * Miscellaneous utility to generate a complete palette from raw image pixel
