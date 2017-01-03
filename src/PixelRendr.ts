@@ -282,9 +282,7 @@ export class PixelRendr implements IPixelRendr {
     }
 
     /**
-     * Copies a stretch of members from one Uint8ClampedArray or number[] to
-     * another. This is a useful utility Function for code that may use this 
-     * PixelRendr to draw its output sprites, such as PixelDrawr.
+     * Copies a slice from one Uint8ClampedArray or number[] to another.
      * 
      * @param source   An Array-like source to copy from.
      * @param destination   An Array-like destination to copy to.
@@ -400,15 +398,14 @@ export class PixelRendr implements IPixelRendr {
     private generateSpriteCommandMultipleFromRender(render: Render, key: string, attributes: any): SpriteMultiple {
         const sources: any = render.source[2];
         const sprites: ISpriteSingles = {};
-        const output: SpriteMultiple = new SpriteMultiple(sprites, render.source);
 
         for (const i in sources) {
             const path: string = key + " " + i;
             const sprite: any = this.processorBase.process(sources[i], path, render.filter);
-            sprites[i] = this.processorDims.process(sprite, path, attributes);
+            sprites[i] = new SpriteSingle(this.processorDims.process(sprite, path, attributes));
         }
 
-        return output;
+        return new SpriteMultiple(sprites, render.source);
     }
 
     /**

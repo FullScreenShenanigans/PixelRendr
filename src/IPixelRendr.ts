@@ -330,9 +330,7 @@ export interface IPixelRendr {
     decode(key: string, attributes: any): SpriteSingle | SpriteMultiple;
 
     /**
-     * Copies a stretch of members from one Uint8ClampedArray or number[] to
-     * another. This is a useful utility Function for code that may use this 
-     * PixelRendr to draw its output sprites, such as PixelDrawr.
+     * Copies a slice from one Uint8ClampedArray or number[] to another.
      * 
      * @param source   An Array-like source to copy from.
      * @param destination   An Array-like destination to copy to.
