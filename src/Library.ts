@@ -26,7 +26,10 @@ export class Library {
     }
 
     /**
+     * Parses raw sprite sources into rendered sprites.
      * 
+     * @param raws   Raw sources for sprites.
+     * @returns Rendered sprites from the raw sources.
      */
     private parse(raws: ILibraryRaws): IRenderLibrary {
         const setNew: IRenderLibrary = {};

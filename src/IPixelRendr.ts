@@ -1,6 +1,9 @@
 import { IChangeLinr } from "changelinr/lib/IChangeLinr";
 import { IStringFilr } from "stringfilr/lib/IStringFilr";
 
+import { SpriteMultiple } from "./SpriteMultiple";
+import { SpriteSingle } from "./SpriteSingle";
+
 /**
  * A single [red, green, blue, alpha] pixel's colors.
  */
@@ -62,7 +65,7 @@ export interface IRender {
  * Generated sprites stored within an IRender.
  */
 export interface IRenderSprites {
-    [i: string]: Uint8ClampedArray | ISpriteMultiple;
+    [i: string]: SpriteSingle | SpriteMultiple;
 }
 
 /**
@@ -186,55 +189,22 @@ export interface ISpriteMultipleSettings {
 }
 
 /**
- * Container for multiple sprite sections of Uint8ClampedArray of data.
+ * Storage for an ISpriteMultiple's generated sprites.
  */
-export interface ISpriteMultiple {
-    /**
-     * Storage for each internal Uint8ClampedArray sprite, keyed by container.
-     */
-    sprites: IClampedArraysContainer;
-
-    /**
-     * The direction of sprite, such as "horizontal".
-     */
-    direction: string;
-
-    /**
-     * How many pixels tall the top section is, if it exists.
-     */
-    topheight: number;
-
-    /**
-     * How many pixels wide the right section is, if it exists.
-     */
-    rightwidth: number;
-
-    /**
-     * How many pixels tall the bottom section is, if it exists.
-     */
-    bottomheight: number;
-
-    /**
-     * How many pixels wide the left section is, if it exists.
-     */
-    leftwidth: number;
-
-    /**
-     * Whether the middle section should be stretched to fill the remaining
-     * space instead of filling as a pattern.
-     */
-    middleStretch: boolean;
+export interface ISpriteSingles {
+    [i: string]: SpriteSingle;
 }
 
 /**
- * Storage for an ISpriteMultiple's generated sprites.
+ * Generates a sprite from a render.
+ * 
+ * @param render   The source render.
+ * @param key   Key for the sprite.
+ * @param attributes   Any attributes to pass to a sprite generator.
+ * @returns The generated sprite from the render.
  */
-export interface IClampedArraysContainer {
-    [i: string]: Uint8ClampedArray;
-}
-
 export interface IGeneralSpriteGenerator {
-    (render: IRender, key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
+    (render: IRender, key: string, attributes: any): SpriteSingle | SpriteMultiple;
 }
 
 /**
@@ -285,11 +255,6 @@ export interface IPixelRendrSettings {
      * "spriteHeight").
      */
     spriteHeight?: string;
-
-    /**
-     * A replacement for window.Uint8ClampedArray, if desired.
-     */
-    Uint8ClampedArray?: typeof Uint8ClampedArray;
 }
 
 /**
@@ -346,16 +311,6 @@ export interface IPixelRendr {
     resetRender(key: string): void;
 
     /**
-     * Retrieves the base sprite under the given key.
-     * 
-     * @param key   A key for a base sprite.
-     * @returns The base sprite for the key. This will be a Uint8ClampedArray 
-     *          or SpriteMultiple if a sprite is found, or the deepest matching 
-     *          Object in the library if not.
-     */
-    getSpriteBase(key: string): Uint8ClampedArray | ISpriteMultiple;
-
-    /**
      * Replaces the current palette with a new one.
      * 
      * @param palette   The new palette to replace the current one.
@@ -372,7 +327,7 @@ export interface IPixelRendr {
      *                     Numbers are required.
      * @returns A sprite for the given key and attributes.
      */
-    decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple;
+    decode(key: string, attributes: any): SpriteSingle | SpriteMultiple;
 
     /**
      * Copies a stretch of members from one Uint8ClampedArray or number[] to

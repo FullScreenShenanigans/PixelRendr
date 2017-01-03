@@ -4,14 +4,15 @@ import { IStringFilr } from "stringfilr/lib/IStringFilr";
 import { StringFilr } from "stringfilr/lib/StringFilr";
 
 import {
-    IClampedArraysContainer, IFilter, IFilterAttributes, IFilterContainer,
+    IFilter, IFilterAttributes, IFilterContainer,
     IGeneralSpriteGenerator, ILibrary, ILibraryRaws, IPalette, IPixelRendr,
     IPixelRendrSettings, IRender, IRenderContainerListing, IRenderLibrary,
-    ISpriteAttributes, ISpriteMultiple
+    ISpriteAttributes, ISpriteSingles
 } from "./IPixelRendr";
 import { Library } from "./Library";
 import { Render } from "./Render";
 import { SpriteMultiple } from "./SpriteMultiple";
+import { SpriteSingle } from "./SpriteSingle";
 
 /**
  * Compresses images into text blobs in real time with fast cached lookups. 
@@ -114,7 +115,7 @@ export class PixelRendr implements IPixelRendr {
         this.spriteWidth = settings.spriteWidth || "spriteWidth";
         this.spriteHeight = settings.spriteHeight || "spriteHeight";
 
-        this.Uint8ClampedArray = settings.Uint8ClampedArray || (window as any).Uint8ClampedArray || (window as any).Uint8Array;
+        this.Uint8ClampedArray = (window as any).Uint8ClampedArray || (window as any).Uint8Array;
 
         // The first ChangeLinr does the raw processing of Strings to sprites
         // This is used to load & parse sprites into memory on startup
@@ -204,7 +205,7 @@ export class PixelRendr implements IPixelRendr {
      *          or SpriteMultiple if a sprite is found, or the deepest matching 
      *          Object in the library if not.
      */
-    public getSpriteBase(key: string): Uint8ClampedArray | ISpriteMultiple {
+    public getSpriteBase(key: string): Uint8ClampedArray | SpriteMultiple {
         return this.baseFiler.get(key);
     }
 
@@ -261,7 +262,7 @@ export class PixelRendr implements IPixelRendr {
      *                     Numbers are required.
      * @returns A sprite for the given key and attributes.
      */
-    public decode(key: string, attributes: any): Uint8ClampedArray | ISpriteMultiple {
+    public decode(key: string, attributes: any): SpriteSingle | SpriteMultiple {
         const result: Render | IRenderLibrary = this.baseFiler.get(key);
         if (!(result instanceof Render)) {
             throw new Error(`No sprite found for '${key}'.`);
@@ -272,9 +273,8 @@ export class PixelRendr implements IPixelRendr {
             this.generateRenderSprite(result, key, attributes);
         }
 
-        const sprite: Uint8ClampedArray | ISpriteMultiple = result.sprites[key];
-
-        if (!sprite || (sprite.constructor === this.Uint8ClampedArray && (sprite as Uint8ClampedArray).length === 0)) {
+        const sprite: SpriteSingle | SpriteMultiple = result.sprites[key];
+        if (!sprite) {
             throw new Error(`Could not generate sprite for '${key}'.`);
         }
 
@@ -366,15 +366,9 @@ export class PixelRendr implements IPixelRendr {
      *                     generation process.
      */
     private generateRenderSprite(render: Render, key: string, attributes: any): void {
-        let sprite: Uint8ClampedArray | ISpriteMultiple;
-
-        if (render.source.constructor === String) {
-            sprite = this.generateSpriteSingleFromRender(render, key, attributes);
-        } else {
-            sprite = this.commandGenerators[render.source[0]](render, key, attributes);
-        }
-
-        render.sprites[key] = sprite;
+        render.sprites[key] = typeof render.source.constructor === "string"
+            ? this.generateSpriteSingleFromRender(render, key, attributes)
+            : this.commandGenerators[render.source[0]](render, key, attributes);
     }
 
     /**
@@ -386,10 +380,10 @@ export class PixelRendr implements IPixelRendr {
      *                     process.
      * @returns   The output sprite.
      */
-    private generateSpriteSingleFromRender(render: Render, key: string, attributes: any): Uint8ClampedArray {
+    private generateSpriteSingleFromRender(render: Render, key: string, attributes: any): SpriteSingle {
         const base: Uint8ClampedArray = this.processorBase.process(render.source, key, render.filter);
 
-        return this.processorDims.process(base, key, attributes);
+        return new SpriteSingle(this.processorDims.process(base, key, attributes));
     }
 
     /**
@@ -405,8 +399,8 @@ export class PixelRendr implements IPixelRendr {
      */
     private generateSpriteCommandMultipleFromRender(render: Render, key: string, attributes: any): SpriteMultiple {
         const sources: any = render.source[2];
-        const sprites: IClampedArraysContainer = {};
-        const output: ISpriteMultiple = new SpriteMultiple(sprites, render);
+        const sprites: ISpriteSingles = {};
+        const output: SpriteMultiple = new SpriteMultiple(sprites, render.source);
 
         for (const i in sources) {
             const path: string = key + " " + i;
@@ -428,7 +422,7 @@ export class PixelRendr implements IPixelRendr {
      *                              sprite generation process.
      * @returns The output sprite.
      */
-    private generateSpriteCommandSameFromRender(render: Render, key: string, attributes: any): Uint8ClampedArray | SpriteMultiple {
+    private generateSpriteCommandSameFromRender(render: Render, key: string, attributes: any): SpriteSingle | SpriteMultiple {
         const replacement: Render | IRenderLibrary = this.followPath(this.library.sprites, render.source[1], 0);
 
         // The (now temporary) Render's containers are given the Render or directory
@@ -455,7 +449,7 @@ export class PixelRendr implements IPixelRendr {
     private generateSpriteCommandFilterFromRender(
         render: Render,
         key: string,
-        attributes: IFilterAttributes): Uint8ClampedArray | SpriteMultiple {
+        attributes: IFilterAttributes): SpriteSingle | SpriteMultiple {
         const filter: IFilter = this.filters[render.source[2]];
         if (!filter) {
             throw new Error(`Invalid filter provided: '${render.source[2]}'.`);
