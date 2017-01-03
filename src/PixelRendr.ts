@@ -366,7 +366,7 @@ export class PixelRendr implements IPixelRendr {
      *                     generation process.
      */
     private generateRenderSprite(render: Render, key: string, attributes: any): void {
-        render.sprites[key] = typeof render.source.constructor === "string"
+        render.sprites[key] = typeof render.source === "string"
             ? this.generateSpriteSingleFromRender(render, key, attributes)
             : this.commandGenerators[render.source[0]](render, key, attributes);
     }

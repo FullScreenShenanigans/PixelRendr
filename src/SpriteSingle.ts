@@ -5,7 +5,7 @@ export class SpriteSingle {
     /**
      * Raw sprite data.
      */
-    private readonly data: Uint8ClampedArray;
+    public readonly data: Uint8ClampedArray;
 
     /**
      * A canvas with the rendered sprite, once created.
